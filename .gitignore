@@ -1,0 +1,12 @@
+# Screenshots (development artifacts)
+screenshot-*.png
+
+# Backup files
+*.bak
+
+# OpenCode internal
+.omo/
+.playwright-mcp/
+
+# Empty placeholder
+nul
