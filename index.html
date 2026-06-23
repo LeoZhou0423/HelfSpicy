@@ -8,10 +8,22 @@
 <link rel="preconnect" href="https://fonts.loli.net">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.loli.net/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-<script src="https://cdn.bootcdn.net/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdn.bootcdn.net/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-<script src="https://cdn.bootcdn.net/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/three.js/r128/three.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js" defer></script>
+<!-- Fallback: if CDN fails, ensure preloader hides after 6s -->
+<script>
+(function(){
+  var forced = setTimeout(function(){
+    var el = document.getElementById('preloader');
+    if (el && el.style.display !== 'none') {
+      el.style.display = 'none';
+    }
+  }, 6000);
+  window.cancelPreloaderFallback = function() { clearTimeout(forced); };
+})();
+</script>
 <style>
 :root {
   --bg:#030303;
@@ -830,16 +842,6 @@ function initHeroParallax() {
   container.insertBefore(wrap, container.firstChild);
 
   // 先添加的在下面，后添加的在上面
-<<<<<<< HEAD
-  // 所以 6.png 先放（最底下不动），1.png 最后放（最上面移动最多）
-  const configs = [
-    { file: '6.png', s: 0.0 },   // 最底下，不动
-    { file: '5.png', s: 0.008 },
-    { file: '4.png', s: 0.015 },
-    { file: '3.png', s: 0.025 },
-    { file: '2.png', s: 0.04 },
-    { file: '1.png', s: 0.06 },  // 最上面，移最多
-=======
   // 所以 6.jpg 先放（最底下不动），1.jpg 最后放（最上面移动最多）
   const configs = [
     { file: '6.jpg', s: 0.0 },   // 最底下，不动
@@ -848,7 +850,6 @@ function initHeroParallax() {
     { file: '3.jpg', s: 0.025 },
     { file: '2.jpg', s: 0.04 },
     { file: '1.jpg', s: 0.06 },  // 最上面，移最多
->>>>>>> e9df8dc (Optimize for China: rename to index.html, compress images 77MB→1.3MB, replace CDN with BootCDN/loli.net)
   ];
 
   configs.forEach(cfg => {
