@@ -320,14 +320,33 @@ a, button, [role="button"] { cursor:none }
   font-family:var(--font-mono); font-size:10px; letter-spacing:0.15em;
   color:rgba(255,255,255,0.7); opacity:0; transition:opacity 0.4s ease;
 }
-.gallery-slide:hover .gallery-index { opacity:1 }
+  .gallery-slide:hover .gallery-index { opacity:1 }
 
-/* Statement */
-.statement {
-  position:relative; z-index:1; padding:32vh 56px; background:var(--bg);
-  text-align:center; min-height:100dvh; display:flex; align-items:center; justify-content:center;
-  overflow:hidden;
-}
+  /* 3D Tilt Effect */
+  .gallery-slide-inner.tilt {
+    transition: transform 0.1s ease-out;
+  }
+
+  /* Statement */
+  .statement {
+    position:relative; z-index:1; padding:32vh 56px; background:var(--bg);
+    text-align:center; min-height:100dvh; display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+  }
+
+  /* Page Transition */
+  .page-transition {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: var(--bg);
+    pointer-events: none;
+    clip-path: circle(0% at 50% 50%);
+    transition: clip-path 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .page-transition.active {
+    clip-path: circle(150% at 50% 50%);
+  }
 @media (max-width:900px) { .statement { padding:16vh 24px } }
 
 .statement .light-wash {

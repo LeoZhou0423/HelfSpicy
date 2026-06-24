@@ -580,6 +580,88 @@ function initStatementWords() {
 }
 
 /* ========== ABOUT ANIMATIONS ========== */
+/* ========== 3D TILT ========== */
+function init3DTilt() {
+  if (prefersReducedMotion || isMobile) return;
+  const slides = document.querySelectorAll('.gallery-slide');
+  slides.forEach(function(slide) {
+    const inner = slide.querySelector('.gallery-slide-inner');
+    if (!inner) return;
+    inner.classList.add('tilt');
+    slide.addEventListener('mousemove', function(e) {
+      const rect = slide.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+      const rotateX = (y - 0.5) * -20;
+      const rotateY = (x - 0.5) * 20;
+      inner.style.transform = 'perspective(1000px) rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) scale3d(1.02, 1.02, 1.02)';
+    });
+    slide.addEventListener('mouseleave', function() {
+      inner.style.transform = '';
+    });
+  });
+}
+
+/* ========== PARALLAX DEPTH ========== */
+function initParallaxDepth() {
+  if (prefersReducedMotion || isMobile) return;
+  const aboutPortrait = document.querySelector('.about-portrait');
+  const aboutLeft = document.querySelector('.about-left');
+  if (aboutPortrait) {
+    gsap.to(aboutPortrait, {
+      yPercent: -20,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '.about-section',
+        start: 'top bottom',
+        end: 'bottom top',
+        scrub: 1
+      }
+    });
+  }
+  if (aboutLeft) {
+    gsap.to(aboutLeft, {
+      yPercent: 8,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '.about-section',
+        start: 'top bottom',
+        end: 'bottom top',
+        scrub: 1
+      }
+    });
+  }
+}
+
+/* ========== PAGE TRANSITION ========== */
+function initPageTransition() {
+  var navLinks = document.querySelectorAll('.nav-links a, .mobile-menu a');
+  navLinks.forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      var href = link.getAttribute('href');
+      if (!href || !href.startsWith('#')) return;
+      e.preventDefault();
+      var target = document.querySelector(href);
+      if (!target) return;
+      var transition = document.createElement('div');
+      transition.className = 'page-transition';
+      document.body.appendChild(transition);
+      requestAnimationFrame(function() {
+        transition.classList.add('active');
+      });
+      setTimeout(function() {
+        if (lenis) {
+          lenis.scrollTo(target, { offset: 0 });
+        } else {
+          target.scrollIntoView({ behavior: 'auto' });
+        }
+        transition.classList.remove('active');
+        setTimeout(function() { transition.remove(); }, 800);
+      }, 400);
+    });
+  });
+}
+
 function initAbout() {
   if (prefersReducedMotion) return;
   const portrait = document.querySelector('.about-portrait img');
@@ -767,6 +849,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initLightbox();
   initAnchors();
   initNavScroll();
+  init3DTilt();
+  initParallaxDepth();
+  initPageTransition();
 
   // 汉堡菜单
   var hamburger = document.getElementById('hamburger');
