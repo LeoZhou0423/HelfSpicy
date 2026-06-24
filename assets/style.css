@@ -167,9 +167,7 @@ a, button, [role="button"] { cursor:none }
   color: rgba(255,255,255,0.5);
   pointer-events: none;
 }
-@media (max-width: 900px) {
-  .gallery-counter { display: none; }
-}
+/* 手机端 gallery counter 由 JS 控制显示 */
 
 /* Hamburger */
 .hamburger {
@@ -281,15 +279,28 @@ a, button, [role="button"] { cursor:none }
 .gallery-wrap {
   position:relative; width:100%; height:100dvh;
 }
-@media (max-width:900px) { .gallery-wrap { height:auto; padding:0 24px 10vh } }
+@media (max-width:900px) {
+  .gallery-wrap {
+    height:auto; padding:0 0 10vh;
+    overflow-x:auto; scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+  }
+  .gallery-wrap::-webkit-scrollbar { display:none }
+}
 
 .gallery-track {
   display:flex; gap:10vw; align-items:center;
   height:100%; padding:0 12vw; will-change:transform;
 }
 @media (max-width:900px) {
-  .gallery-track { flex-direction:column; gap:48px; padding:0; height:auto }
-  .gallery-slide img { width:100%; height:auto; object-fit:cover; aspect-ratio:auto }
+  .gallery-track {
+    display:flex; flex-direction:row; gap:24px; padding:0 24px; height:auto;
+    flex-wrap:nowrap;
+  }
+  .gallery-track { will-change:auto }
+  .gallery-slide { flex-shrink:0; width:85vw; height:auto; aspect-ratio:auto; scroll-snap-align:start }
+  .gallery-slide-inner { height:auto }
+  .gallery-slide img { width:100%; height:auto; display:block }
   .gallery-caption, .gallery-index { opacity:1 !important; transform:none !important }
 }
 
@@ -298,7 +309,6 @@ a, button, [role="button"] { cursor:none }
   height:72vh; overflow:hidden; background:var(--surface);
   transform-style:preserve-3d; perspective:1000px;
 }
-@media (max-width:900px) { .gallery-slide { width:100%; height:auto; aspect-ratio:auto; max-height:85dvh } }
 
 .gallery-slide-inner {
   height:100%; overflow:hidden; position:relative;

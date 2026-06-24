@@ -373,15 +373,43 @@ let galleryVelocity = 0;
 let gallerySetupDone = false;
 
 function initHorizontalGallery() {
-  if (prefersReducedMotion || window.innerWidth < 900) {
-    document.querySelectorAll('.gallery-slide').forEach(s => s.style.opacity = 1);
-    return;
-  }
   const wrap = document.getElementById('gallery-wrap');
   const track = document.getElementById('gallery-track');
   if (!wrap || !track) return;
   const slides = track.querySelectorAll('.gallery-slide');
   if (slides.length === 0) return;
+
+  // 手机端：CSS scroll-snap + native swipe，初始化 counter
+  if (window.innerWidth < 900) {
+    slides.forEach(function(s) { s.style.opacity = '1'; });
+    var iscroll = document.getElementById('gallery-counter');
+    if (!iscroll) {
+      iscroll = document.createElement('div');
+      iscroll.id = 'gallery-counter';
+      iscroll.className = 'gallery-counter';
+      document.body.appendChild(iscroll);
+    }
+    function updateCounter() {
+      var wrapRect = wrap.getBoundingClientRect();
+      var viewCenter = wrapRect.left + wrapRect.width / 2;
+      var closest = 0, distMin = Infinity;
+      slides.forEach(function(s, i) {
+        var r = s.getBoundingClientRect();
+        var d = Math.abs(r.left + r.width / 2 - viewCenter);
+        if (d < distMin) { distMin = d; closest = i + 1; }
+      });
+      var total = slides.length;
+      iscroll.textContent = (closest < 10 ? '0' : '') + closest + ' / ' + (total < 10 ? '0' : '') + total;
+    }
+    wrap.addEventListener('scroll', updateCounter);
+    updateCounter();
+    return;
+  }
+
+  if (prefersReducedMotion) {
+    slides.forEach(function(s) { s.style.opacity = '1'; });
+    return;
+  }
 
   const allImgs = track.querySelectorAll('img');
   let loaded = 0;
