@@ -8,5 +8,8 @@ screenshot-*.png
 .omo/
 .playwright-mcp/
 
+# Node.js dependencies (dev tooling only - not part of site)
+node_modules/
+
 # Empty placeholder
 nul

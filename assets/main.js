@@ -227,7 +227,7 @@ function initHeroParallax() {
   */
 
   // 背景组（在文字后面）— 手机端放大 s 值让视差可见
-  var sMult = isMobile ? 6 : 1;
+  var sMult = isMobile ? 3 : 1;
   const bgConfigs = [
     { file: '6.webp', s: 0.0 },
     { file: '5.webp', s: 0.008 * sMult },
@@ -870,6 +870,13 @@ function initPreloader() {
   var minDisplay = 1200; // 最短显示 1.2s，防止闪烁
   var startTime = performance.now();
   var fallbackTimer = null;
+  var stuckTimer = null;     // 卡住检测
+  var stuckInterval = null;  // 卡住时的伪进度动画
+
+  // 初始最小进度，避免显示 0%
+  var initialPct = Math.min(0.15, total > 0 ? 1 / total : 0.15);
+  progress.style.width = (initialPct * 100) + '%';
+  percent.textContent = Math.round(initialPct * 100) + '%';
 
   // 如果页面上没有图片，兜底 2s 后消失
   if (total === 0) {
@@ -877,8 +884,27 @@ function initPreloader() {
     return;
   }
 
+  // 3s 后如果进度仍未移动 → 进入「卡住」状态：显示脉冲动画
+  stuckTimer = setTimeout(function() {
+    if (done || loaded > 0) return;
+    progress.style.transition = 'width 1s ease-in-out, opacity 0.5s';
+    var dir = 1;
+    stuckInterval = setInterval(function() {
+      if (done) { clearInterval(stuckInterval); return; }
+      var base = initialPct * 100;
+      var pulse = base + (dir > 0 ? 8 : -5);
+      progress.style.width = pulse + '%';
+      percent.textContent = Math.round(pulse) + '%';
+      dir *= -1;
+    }, 1200);
+  }, 3000);
+
   function onLoad() {
     loaded++;
+    // 一旦有真实进度，取消卡住动画
+    if (stuckInterval) { clearInterval(stuckInterval); stuckInterval = null; }
+    if (stuckTimer) { clearTimeout(stuckTimer); stuckTimer = null; }
+    progress.style.transition = '';
     updateProgress();
     if (loaded >= total) {
       var elapsed = performance.now() - startTime;
@@ -900,8 +926,11 @@ function initPreloader() {
     if (done) return;
     done = true;
     if (fallbackTimer) clearTimeout(fallbackTimer);
+    if (stuckTimer) { clearTimeout(stuckTimer); stuckTimer = null; }
+    if (stuckInterval) { clearInterval(stuckInterval); stuckInterval = null; }
     if (typeof cancelPreloaderFallback === 'function') cancelPreloaderFallback();
 
+    progress.style.transition = '';
     progress.style.width = '100%';
     percent.textContent = '100%';
 
@@ -946,11 +975,86 @@ function initPreloader() {
     return;
   }
 
-  // 兜底：12s 强制关闭（网络太差不能无限等）
-  fallbackTimer = setTimeout(finish, 12000);
+  // 兜底：6s 强制关闭（图片已压缩减少等待感）
+  fallbackTimer = setTimeout(finish, 6000);
 
   updateProgress();
 }
+/* ========== BGM ========== */
+function initBGM() {
+  var audio = document.getElementById('bgm');
+  var btn = document.getElementById('bgm-toggle');
+  if (!audio || !btn) return;
+
+  audio.volume = 0;
+  var saved = localStorage.getItem('bgm_playing');
+  var isPlaying = false;
+  var fadeInterval = null;
+
+  function fadeIn() {
+    if (fadeInterval) clearInterval(fadeInterval);
+    audio.volume = 0;
+    audio.play().catch(function() {});
+    var startVol = 0;
+    fadeInterval = setInterval(function() {
+      startVol += 0.04;
+      if (startVol >= 0.5) {
+        audio.volume = 0.5;
+        clearInterval(fadeInterval);
+        fadeInterval = null;
+      } else {
+        audio.volume = startVol;
+      }
+    }, 80);
+  }
+
+  function fadeOut(cb) {
+    if (fadeInterval) clearInterval(fadeInterval);
+    var vol = audio.volume;
+    fadeInterval = setInterval(function() {
+      vol -= 0.06;
+      if (vol <= 0) {
+        audio.volume = 0;
+        audio.pause();
+        clearInterval(fadeInterval);
+        fadeInterval = null;
+        if (cb) cb();
+      } else {
+        audio.volume = vol;
+      }
+    }, 50);
+  }
+
+  function setState(playing) {
+    isPlaying = playing;
+    btn.dataset.playing = playing ? 'true' : 'false';
+    localStorage.setItem('bgm_playing', playing ? '1' : '');
+  }
+
+  btn.addEventListener('click', function() {
+    if (isPlaying) {
+      fadeOut(function() { setState(false); });
+    } else {
+      fadeIn();
+      setState(true);
+    }
+  });
+
+  // Resume saved state on user interaction (autoplay policy)
+  if (saved === '1') {
+    var resume = function() {
+      document.removeEventListener('click', resume);
+      document.removeEventListener('touchstart', resume);
+      if (!isPlaying) {
+        fadeIn();
+        setState(true);
+      }
+    };
+    document.addEventListener('click', resume);
+    document.addEventListener('touchstart', resume);
+  }
+}
+
 /* ========== INIT ========== */
 document.addEventListener('DOMContentLoaded', () => {
   initPreloader();
@@ -976,6 +1080,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* 以下功能不依赖 GSAP，始终运行 */
   initCursor();
   initHeroParallax();
+  initBGM();
   initAnchors();
   initNavScroll();
   init3DTilt();

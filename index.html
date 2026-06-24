@@ -33,7 +33,7 @@
       document.body.style.overflow = '';
       if (typeof initHeroText === 'function') initHeroText();
     }
-  }, 12000);
+    }, 8000);
   window.cancelPreloaderFallback = function() { clearTimeout(forced); };
 })();
 </script>
@@ -156,6 +156,9 @@
   <a href="#about" data-i18n="nav_about">关于</a>
 </div>
 
+<!-- BGM -->
+<audio id="bgm" src="assets/bgm.mp3" loop preload="auto" crossorigin="anonymous"></audio>
+
 <footer class="footer" role="contentinfo">
   <p class="footer-copy" data-i18n="footer_copy">2026 辣不死的堡</p>
   <div class="footer-socials">
@@ -174,6 +177,18 @@
     <div class="lightbox-meta" id="lightbox-meta"></div>
   </div>
 </div>
+
+<!-- BGM Toggle -->
+<button class="bgm-toggle" id="bgm-toggle" aria-label="Toggle background music" data-playing="false">
+  <svg class="bgm-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 18V5l12-2v13" class="bgm-note"/>
+    <circle cx="6" cy="18" r="3"/>
+    <circle cx="18" cy="16" r="3"/>
+    <line x1="6" y1="6" x2="22" y2="4" class="bgm-wave"/>
+    <line x1="8" y1="12" x2="20" y2="10" class="bgm-wave"/>
+  </svg>
+  <span class="bgm-label" id="bgm-label">BGM</span>
+</button>
 
 <script defer src="assets/main.js"></script>
 </body>
