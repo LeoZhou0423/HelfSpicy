@@ -275,17 +275,25 @@ function initHeroParallax() {
   });
 
   // 手机：陀螺仪 deviceorientation
+  // 参考成熟实践（diorama tutorial / Subvisual / Mantine Parallax）：
+  //   1. 第一帧记录 tiltOrigin 做基线，后续只追踪 delta
+  //   2. lerp 0.18 是公认甜区（jitter vs 跟手平衡点）
+  //   3. ÷25 控制灵敏度，无需关联真实角度范围
   if (isMobile) {
+    var tiltOrigin = null;
     var hasOrientation = false;
     var orientationTimer = null;
 
     var handleOrientation = function(e) {
-      // 只有 null/undefined 才跳过；gamma 为 0 是合法值
       if (e.gamma === null && e.beta === null) return;
       hasOrientation = true;
-      // 直接用原始值（无 EMA），lerp 一层平滑就够了
-      heroTargetMouseX = Math.max(-1, Math.min(1, (e.gamma || 0) / 18));
-      heroTargetMouseY = Math.max(-1, Math.min(1, ((e.beta || 0) - 70) / 18));
+      // 首次事件：记录基线（自然握持姿态）
+      if (tiltOrigin === null) {
+        tiltOrigin = { gamma: e.gamma, beta: e.beta };
+      }
+      // 相对基线的 delta，÷25 归一化到 ≈±1（±25° 倾斜 = 满幅）
+      heroTargetMouseX = Math.max(-1, Math.min(1, (e.gamma - tiltOrigin.gamma) / 25));
+      heroTargetMouseY = Math.max(-1, Math.min(1, (e.beta - tiltOrigin.beta) / 25));
     };
 
     // 直接添加监听器（Android / iOS 16.4+ HTTPS 无需权限）
@@ -299,7 +307,6 @@ function initHeroParallax() {
         _permAsked = true;
         DeviceOrientationEvent.requestPermission().then(function(state) {
           if (state === 'granted') {
-            // 删除无权限的旧监听器，重新添加一个有权限的
             window.removeEventListener('deviceorientation', handleOrientation);
             window.addEventListener('deviceorientation', handleOrientation);
           }
@@ -325,14 +332,15 @@ function initHeroParallax() {
 
 function parityLoop() {
   if (!heroParallaxRunning) return;
-  heroMouseX += (heroTargetMouseX - heroMouseX) * 0.08;
-  heroMouseY += (heroTargetMouseY - heroMouseY) * 0.08;
+  // lerp 0.18 是社区公认甜区：跟手但不抖
+  heroMouseX += (heroTargetMouseX - heroMouseX) * 0.18;
+  heroMouseY += (heroTargetMouseY - heroMouseY) * 0.18;
   for (var i = 0; i < heroParallaxLayers.length; i++) {
     var el = heroParallaxLayers[i];
     var s = parseFloat(el.dataset.s);
-    // 移动端陀螺仪倾斜幅度 < 鼠标移动幅度，mult 应更大以获得等效视差
-    var multX = isMobile ? 280 : 200;
-    var multY = isMobile ? 180 : 120;
+    // 桌面端鼠标可扫全屏，移动端陀螺仪倾斜范围有限，故 mult 更大
+    var multX = isMobile ? 250 : 200;
+    var multY = isMobile ? 160 : 120;
     var dx = heroMouseX * s * multX;
     var dy = heroMouseY * s * multY;
     el.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
