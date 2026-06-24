@@ -243,6 +243,10 @@ function initHeroParallax() {
   function createLayer(cfg, parent, index) {
     const el = document.createElement('img');
     el.src = `img/${cfg.file}`;
+    el.alt = '';
+    el.setAttribute('aria-hidden', 'true');
+    // 手机端缩小初始缩放，避免过度裁剪
+    var initScale = isMobile ? 1.05 : 1.15;
     el.style.cssText = `
       position:absolute;inset:0;
       width:100%;height:100%;
@@ -250,7 +254,7 @@ function initHeroParallax() {
       will-change:transform;
       transition:opacity 0.6s ease;
       opacity:0;
-      transform:scale(1.15);
+      transform:scale(${initScale});
     `;
     el.dataset.s = cfg.s;
     el.onload = function() { 
@@ -262,41 +266,35 @@ function initHeroParallax() {
   }
 
   bgConfigs.forEach((cfg, i) => createLayer(cfg, bgWrap, i));
-  // fgConfigs.forEach((cfg, i) => createLayer(cfg, fgWrap, i));
 
-  // 桌面：mousemove；手机：陀螺仪 deviceorientation
+  // 桌面：mousemove
   document.addEventListener('mousemove', function(e) {
     heroTargetMouseX = (e.clientX / window.innerWidth - 0.5) * 2;
     heroTargetMouseY = (e.clientY / window.innerHeight - 0.5) * 2;
   });
 
+  // 手机：陀螺仪 deviceorientation
   if (isMobile) {
-    // 手机端：陀螺仪视差，需要 iOS 13+ 权限
+    var hasOrientation = false;
+    var orientationTimer = null;
     var handleOrientation = function(e) {
+      if (!e.gamma && !e.beta) return;
+      hasOrientation = true;
       var gamma = e.gamma || 0; // 左右倾斜 -90..90
-      var beta = e.beta || 0;   // 前后倾斜 -180..180
-      // 归一化到 -1..1，以 45° 为基准握持姿势
-      heroTargetMouseX = Math.max(-1, Math.min(1, gamma / 45));
-      heroTargetMouseY = Math.max(-1, Math.min(1, (beta - 45) / 45));
+      var beta = e.beta || 0;   // 前后倾斜 0..180
+      // 自然握持 beta≈70°，gamma≈0°；±30° 为满幅度
+      heroTargetMouseX = Math.max(-1, Math.min(1, gamma / 30));
+      heroTargetMouseY = Math.max(-1, Math.min(1, (beta - 70) / 30));
     };
 
-    // iOS 13+ 需要权限
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      // 尝试静默请求（用户已经滚动交互后）
-      var tryRequest = function() {
-        document.removeEventListener('click', tryRequest);
-        document.removeEventListener('touchstart', tryRequest);
-        DeviceOrientationEvent.requestPermission().then(function(state) {
-          if (state === 'granted') {
-            window.addEventListener('deviceorientation', handleOrientation);
-          }
-        }).catch(function() {});
-      };
-      document.addEventListener('click', tryRequest, { once: true });
-      document.addEventListener('touchstart', tryRequest, { once: true });
-    } else if (typeof DeviceOrientationEvent !== 'undefined') {
-      window.addEventListener('deviceorientation', handleOrientation);
-    }
+    window.addEventListener('deviceorientation', handleOrientation);
+
+    // 2s 后检测是否收到陀螺仪数据，没收到则停掉循环省电
+    orientationTimer = setTimeout(function() {
+      if (!hasOrientation) {
+        heroParallaxRunning = false;
+      }
+    }, 2000);
   }
 
   heroParallaxRunning = true;
@@ -310,8 +308,8 @@ function parityLoop() {
   for (var i = 0; i < heroParallaxLayers.length; i++) {
     var el = heroParallaxLayers[i];
     var s = parseFloat(el.dataset.s);
-    var multX = isMobile ? 80 : 200;
-    var multY = isMobile ? 50 : 120;
+    var multX = isMobile ? 150 : 200;
+    var multY = isMobile ? 100 : 120;
     var dx = heroMouseX * s * multX;
     var dy = heroMouseY * s * multY;
     el.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
