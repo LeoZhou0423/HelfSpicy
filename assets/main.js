@@ -694,23 +694,22 @@ function initPageTransition() {
       transition.className = 'page-transition';
       document.body.appendChild(transition);
 
-      // 第1阶段: scale 扩张覆盖 (0.6s)
+      // 第1阶段: 椭圆羽化蒙版扩张 (0.7s)
       requestAnimationFrame(function() {
         transition.classList.add('active');
       });
 
-      // 第2阶段: 覆盖完成后立即滚动
+      // 第2阶段: 覆盖后滚动 + 揭开
       setTimeout(function() {
         if (lenis) {
           lenis.scrollTo(target, { offset: 0, duration: 0 });
         } else {
           target.scrollIntoView({ behavior: 'instant' });
         }
-        // 滚动完成后开始 uncover
         transition.classList.remove('active');
         setTimeout(function() {
           if (transition.parentNode) transition.parentNode.removeChild(transition);
-        }, 650);
+        }, 750);
       }, 500);
     });
   });
