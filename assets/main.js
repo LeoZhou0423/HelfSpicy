@@ -882,21 +882,31 @@ function initPreloader() {
 /* ========== INIT ========== */
 document.addEventListener('DOMContentLoaded', () => {
   initPreloader();
-  gsap.registerPlugin(ScrollTrigger);
-  initLenis();
+
+  /* 检查 GSAP/ScrollTrigger 是否从 CDN 成功加载 */
+  const gsapReady = typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined';
+
+  if (gsapReady) {
+    try { gsap.registerPlugin(ScrollTrigger); } catch (e) { console.warn('[HelfSpicy] GSAP registerPlugin failed:', e); }
+    initLenis();
+    initMagnetic();
+    initScrollProgress();
+    initHorizontalGallery();
+    initStatement();
+    initReveals();
+    initAbout();
+    initLightbox();
+    initParallaxDepth();
+  } else {
+    console.warn('[HelfSpicy] GSAP/ScrollTrigger not loaded — animations disabled. CDN may be blocked.');
+  }
+
+  /* 以下功能不依赖 GSAP，始终运行 */
   initCursor();
-  initMagnetic();
   initHeroParallax();
-  initScrollProgress();
-  initHorizontalGallery();
-  initStatement();
-  initReveals();
-  initAbout();
-  initLightbox();
   initAnchors();
   initNavScroll();
   init3DTilt();
-  initParallaxDepth();
   initPageTransition();
 
   // 汉堡菜单
