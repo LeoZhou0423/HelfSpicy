@@ -226,12 +226,13 @@ function initHeroParallax() {
   container.appendChild(fgWrap);
   */
 
-  // 背景组（在文字后面）
+  // 背景组（在文字后面）— 手机端放大 s 值让视差可见
+  var sMult = isMobile ? 5 : 1;
   const bgConfigs = [
     { file: '6.webp', s: 0.0 },
-    { file: '5.webp', s: 0.008 },
-    { file: '4.webp', s: 0.015 },
-    { file: '3.webp', s: 0.025 },
+    { file: '5.webp', s: 0.008 * sMult },
+    { file: '4.webp', s: 0.015 * sMult },
+    { file: '3.webp', s: 0.025 * sMult },
   ];
 
   // 前景组（在文字前面）- 已移除
