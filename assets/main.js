@@ -278,21 +278,38 @@ function initHeroParallax() {
   if (isMobile) {
     var hasOrientation = false;
     var orientationTimer = null;
-    var smoothGamma = 0;
-    var smoothBeta = 0;
+
     var handleOrientation = function(e) {
-      if (!e.gamma && !e.beta) return;
+      // 只有 null/undefined 才跳过；gamma 为 0 是合法值
+      if (e.gamma === null && e.beta === null) return;
       hasOrientation = true;
-      var gamma = e.gamma || 0;
-      var beta = e.beta || 0;
-      // EMA 滤波：新值 30% + 旧值 70%，平滑噪声
-      smoothGamma = smoothGamma * 0.7 + gamma * 0.3;
-      smoothBeta = smoothBeta * 0.7 + beta * 0.3;
-      heroTargetMouseX = Math.max(-1, Math.min(1, smoothGamma / 30));
-      heroTargetMouseY = Math.max(-1, Math.min(1, (smoothBeta - 70) / 30));
+      // 直接用原始值（无 EMA），lerp 一层平滑就够了
+      heroTargetMouseX = Math.max(-1, Math.min(1, (e.gamma || 0) / 18));
+      heroTargetMouseY = Math.max(-1, Math.min(1, ((e.beta || 0) - 70) / 18));
     };
 
+    // 直接添加监听器（Android / iOS 16.4+ HTTPS 无需权限）
     window.addEventListener('deviceorientation', handleOrientation);
+    // iOS 13–16.3：需要用户手势触发权限请求
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+      var _permAsked = false;
+      var _permFn = function() {
+        if (_permAsked) return;
+        _permAsked = true;
+        DeviceOrientationEvent.requestPermission().then(function(state) {
+          if (state === 'granted') {
+            // 删除无权限的旧监听器，重新添加一个有权限的
+            window.removeEventListener('deviceorientation', handleOrientation);
+            window.addEventListener('deviceorientation', handleOrientation);
+          }
+        });
+        document.removeEventListener('touchstart', _permFn);
+        document.removeEventListener('click', _permFn);
+      };
+      document.addEventListener('touchstart', _permFn);
+      document.addEventListener('click', _permFn);
+    }
 
     // 2s 后检测是否收到陀螺仪数据，没收到则停掉循环省电
     orientationTimer = setTimeout(function() {
@@ -308,13 +325,14 @@ function initHeroParallax() {
 
 function parityLoop() {
   if (!heroParallaxRunning) return;
-  heroMouseX += (heroTargetMouseX - heroMouseX) * 0.06;
-  heroMouseY += (heroTargetMouseY - heroMouseY) * 0.06;
+  heroMouseX += (heroTargetMouseX - heroMouseX) * 0.08;
+  heroMouseY += (heroTargetMouseY - heroMouseY) * 0.08;
   for (var i = 0; i < heroParallaxLayers.length; i++) {
     var el = heroParallaxLayers[i];
     var s = parseFloat(el.dataset.s);
-    var multX = isMobile ? 150 : 200;
-    var multY = isMobile ? 100 : 120;
+    // 移动端陀螺仪倾斜幅度 < 鼠标移动幅度，mult 应更大以获得等效视差
+    var multX = isMobile ? 280 : 200;
+    var multY = isMobile ? 180 : 120;
     var dx = heroMouseX * s * multX;
     var dy = heroMouseY * s * multY;
     el.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
