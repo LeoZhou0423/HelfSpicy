@@ -765,65 +765,43 @@ function initPreloader() {
   var percent = document.getElementById('preloader-percent');
   if (!preloader) return;
 
-  var startTime = performance.now();
-  var maxWait = 4000; // 4-second timeout fallback
-  var criticalAssets = ['6.webp', '5.webp'];
   var done = false;
+  var images = [].filter.call(document.querySelectorAll('img'), function(el) { return el.getAttribute('src') && el.getAttribute('src') !== ''; });
+  var total = images.length;
+  var loaded = 0;
+  var minDisplay = 1200; // 最短显示 1.2s，防止闪烁
+  var startTime = performance.now();
+  var fallbackTimer = null;
 
-  function checkAssetsLoaded() {
-    var entries = performance.getEntriesByType('resource');
-    var criticalLoaded = 0;
+  // 如果页面上没有图片，兜底 2s 后消失
+  if (total === 0) {
+    fallbackTimer = setTimeout(finish, 2000);
+    return;
+  }
 
-    // Check Resource Timing API for critical hero images
-    for (var i = 0; i < criticalAssets.length; i++) {
-      for (var j = 0; j < entries.length; j++) {
-        if (entries[j].name.indexOf(criticalAssets[i]) !== -1 && entries[j].responseEnd > 0) {
-          criticalLoaded++;
-          break;
-        }
+  function onLoad() {
+    loaded++;
+    updateProgress();
+    if (loaded >= total) {
+      var elapsed = performance.now() - startTime;
+      if (elapsed < minDisplay) {
+        setTimeout(finish, minDisplay - elapsed);
+      } else {
+        finish();
       }
     }
+  }
 
-    // Also count any DOM images that have finished loading
-    var imgs = document.querySelectorAll('img');
-    var domLoaded = 0;
-    for (var k = 0; k < imgs.length; k++) {
-      if (imgs[k].complete && imgs[k].naturalWidth > 0) domLoaded++;
-    }
-
-    var elapsed = performance.now() - startTime;
-    // Progress: critical assets count for 70%, any DOM image loads for 30%
-    var assetPct = Math.min(1, criticalLoaded / criticalAssets.length) * 0.7;
-    var domPct = Math.min(1, domLoaded / Math.max(1, imgs.length || 1)) * 0.3;
-    var pct = assetPct + domPct;
-    // Cap at 95% until actually done
-    pct = Math.min(0.95, pct);
-
-    var allCriticalReady = criticalLoaded >= criticalAssets.length;
-    var timedOut = elapsed >= maxWait;
-
-    if (allCriticalReady || timedOut) {
-      pct = 1;
-      progress.style.width = '100%';
-      percent.textContent = '100%';
-      finish();
-      return;
-    }
-
+  function updateProgress() {
+    var pct = Math.min(0.95, loaded / total);
     progress.style.width = (pct * 100) + '%';
     percent.textContent = Math.round(pct * 100) + '%';
-
-    if (!done) {
-      requestAnimationFrame(function() {
-        setTimeout(checkAssetsLoaded, 150);
-      });
-    }
   }
 
   function finish() {
     if (done) return;
     done = true;
-    // Cancel the inline 8-second fallback timer
+    if (fallbackTimer) clearTimeout(fallbackTimer);
     if (typeof cancelPreloaderFallback === 'function') cancelPreloaderFallback();
 
     progress.style.width = '100%';
@@ -840,16 +818,41 @@ function initPreloader() {
       }
       });
     } else {
-    preloader.style.display = 'none';
-    document.body.style.overflow = '';
-    if (typeof initCinematicEntrance === 'function') initCinematicEntrance();
-    if (typeof initHeroText === 'function') initHeroText();
+      preloader.style.display = 'none';
+      document.body.style.overflow = '';
+      if (typeof initCinematicEntrance === 'function') initCinematicEntrance();
+      if (typeof initHeroText === 'function') initHeroText();
     }
   }
 
-  checkAssetsLoaded();
-}
+  // 给每张图片绑 load/error
+  for (var i = 0; i < images.length; i++) {
+    var img = images[i];
+    // 已经加载完成的直接计数
+    if (img.complete && img.naturalWidth > 0) {
+      loaded++;
+    } else {
+      img.addEventListener('load', onLoad);
+      img.addEventListener('error', onLoad); // 错误也算
+    }
+  }
 
+  // 已经完成的图片可能已经占满 total，直接检查
+  if (loaded >= total) {
+    var elapsed = performance.now() - startTime;
+    if (elapsed < minDisplay) {
+      setTimeout(finish, minDisplay - elapsed);
+    } else {
+      finish();
+    }
+    return;
+  }
+
+  // 兜底：12s 强制关闭（网络太差不能无限等）
+  fallbackTimer = setTimeout(finish, 12000);
+
+  updateProgress();
+}
 /* ========== INIT ========== */
 document.addEventListener('DOMContentLoaded', () => {
   initPreloader();
