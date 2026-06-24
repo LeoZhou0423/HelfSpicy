@@ -258,9 +258,9 @@ function initHeroParallax() {
       transform:scale(${initScale});
     `;
     el.dataset.s = cfg.s;
+    el.dataset.scale = initScale;
     el.onload = function() { 
       this.style.opacity = '1';
-      this.style.transform = 'scale(1)';
     };
     parent.appendChild(el);
     heroParallaxLayers.push(el);
@@ -338,12 +338,13 @@ function parityLoop() {
   for (var i = 0; i < heroParallaxLayers.length; i++) {
     var el = heroParallaxLayers[i];
     var s = parseFloat(el.dataset.s);
+    var sc = parseFloat(el.dataset.scale) || 1;
     // 桌面端鼠标可扫全屏，移动端陀螺仪倾斜范围有限，故 mult 更大
     var multX = isMobile ? 120 : 200;
     var multY = isMobile ? 80 : 120;
     var dx = heroMouseX * s * multX;
     var dy = heroMouseY * s * multY;
-    el.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+    el.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(' + sc + ')';
   }
   requestAnimationFrame(parityLoop);
 }
