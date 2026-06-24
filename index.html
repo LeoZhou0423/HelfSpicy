@@ -236,7 +236,7 @@ a, button, [role="button"] { cursor:none }
   display:flex; flex-direction:column; align-items:center; gap:24px;
   pointer-events:none;
   padding:48px 24px;
-  transform:translate(6%, -18%);
+  transform:translate(14%, -6%);
 }
 .hero-content::before {
   content:''; position:absolute; inset:-30% -20%;
@@ -693,7 +693,7 @@ function setLang(lang) {
   gsap.fromTo('.hero-name span', { opacity:0, y:'110%', rotateX:-80 }, { opacity:1, y:'0%', rotateX:0, duration:1, stagger:0.03, ease:'power3.out' });
   gsap.fromTo('.hero-title span', { opacity:0, y:'110%', rotateX:-80 }, { opacity:1, y:'0%', rotateX:0, duration:1.2, stagger:0.025, ease:'power3.out' });
   // 英文模式 hero-content 往上移更多
-  gsap.set('.hero-content', { xPercent: 6, yPercent: lang === 'en' ? -24 : -18 });
+  gsap.set('.hero-content', { xPercent: 14, yPercent: lang === 'en' ? -14 : -6 });
 }
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 const isMobile = window.matchMedia('(pointer:coarse)').matches;
@@ -943,7 +943,7 @@ function initHeroText() {
     .to('.hero-scroll-line', { scaleY: 1, duration: 1, ease: 'power2.out' }, '-=0.6');
 
   gsap.to('.hero-content', {
-    yPercent: currentLang === 'en' ? -26 : -22, opacity: 0,
+    yPercent: currentLang === 'en' ? -18 : -10, opacity: 0,
     ease: 'none',
     scrollTrigger: { trigger: '.hero', start: 'top top', end: '60% top', scrub: true }
   });
