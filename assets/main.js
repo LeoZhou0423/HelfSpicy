@@ -229,7 +229,7 @@ function initHeroParallax() {
   //   { file: '1.webp', s: 0.06 },
   // ];
 
-  function createLayer(cfg, parent) {
+  function createLayer(cfg, parent, index) {
     const el = document.createElement('img');
     el.src = `img/${cfg.file}`;
     el.style.cssText = `
@@ -239,15 +239,19 @@ function initHeroParallax() {
       will-change:transform;
       transition:opacity 0.6s ease;
       opacity:0;
+      transform:scale(1.15);
     `;
     el.dataset.s = cfg.s;
-    el.onload = function() { this.style.opacity = '1'; };
+    el.onload = function() { 
+      this.style.opacity = '1';
+      this.style.transform = 'scale(1)';
+    };
     parent.appendChild(el);
     heroParallaxLayers.push(el);
   }
 
-  bgConfigs.forEach(cfg => createLayer(cfg, bgWrap));
-  // fgConfigs.forEach(cfg => createLayer(cfg, fgWrap));
+  bgConfigs.forEach((cfg, i) => createLayer(cfg, bgWrap, i));
+  // fgConfigs.forEach((cfg, i) => createLayer(cfg, fgWrap, i));
 
   // 桌面用 mousemove，移动端用 touchmove
   document.addEventListener('mousemove', function(e) {
@@ -310,14 +314,16 @@ function initCinematicEntrance() {
   gsap.set('.nav', { y: '-100%', opacity: 0 });
   gsap.set('.hero-scroll', { opacity: 0, y: 20 });
   gsap.set('.hero-scroll-line', { scaleY: 0 });
+  gsap.set('.hero-name span', { opacity: 0, y: '110%', rotateX: -80 });
+  gsap.set('.hero-title span', { opacity: 0, y: '110%', rotateX: -80 });
 
-  const tl = gsap.timeline({ delay: 0.6 });
-  tl.to('.grain', { opacity: 0.035, duration: 0.8, ease: 'power2.out' })
-    .to('.nav', { opacity: 1, y: 0, duration: 1, ease: 'power3.out' }, '-=0.6')
-    .to('.hero-name span', { opacity: 1, y: '0%', rotateX: 0, duration: 1, stagger: 0.03, ease: 'power3.out' }, '-=0.5')
-    .to('.hero-title span', { opacity: 1, y: '0%', rotateX: 0, duration: 1.2, stagger: 0.025, ease: 'power3.out' }, '-=0.7')
-    .to('.hero-scroll', { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }, '-=0.6')
-    .to('.hero-scroll-line', { scaleY: 1, duration: 1, ease: 'power2.out' }, '-=0.6');
+  const tl = gsap.timeline({ delay: 0.3 });
+  tl.to('.grain', { opacity: 0.035, duration: 1, ease: 'power2.out' })
+    .to('.nav', { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out' }, '-=0.8')
+    .to('.hero-name span', { opacity: 1, y: '0%', rotateX: 0, duration: 1.2, stagger: 0.04, ease: 'power3.out' }, '-=0.8')
+    .to('.hero-title span', { opacity: 1, y: '0%', rotateX: 0, duration: 1.4, stagger: 0.03, ease: 'power3.out' }, '-=1')
+    .to('.hero-scroll', { opacity: 1, y: 0, duration: 1, ease: 'power2.out' }, '-=0.8')
+    .to('.hero-scroll-line', { scaleY: 1, duration: 1.2, ease: 'power2.out' }, '-=0.8');
 }
 
 function initHeroText() {
