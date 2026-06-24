@@ -441,7 +441,14 @@ function initHorizontalGallery() {
       lastSkew += (targetSkew - lastSkew) * 0.08;
       var targetScaleY = Math.max(0.97, 1 - Math.abs(galleryVelocity) / 20000);
       lastScaleY += (targetScaleY - lastScaleY) * 0.08;
-      slideInners.forEach(function(s) { s.style.transform = 'skewX(' + lastSkew + 'deg) scaleY(' + lastScaleY + ')'; });
+      /* 合并 skew + tilt + brightness 到同一个 transform */
+      slideInners.forEach(function(s) {
+        var tx = parseFloat(s.dataset.tiltX || 0);
+        var ty = parseFloat(s.dataset.tiltY || 0);
+        var br = parseFloat(s.dataset.tiltBright || 1);
+        s.style.transform = 'skewX(' + lastSkew + 'deg) scaleY(' + lastScaleY + ') perspective(1000px) rotateX(' + tx + 'deg) rotateY(' + ty + 'deg)';
+        s.style.filter = 'brightness(' + br + ')';
+      });
       galleryVelocity *= 0.94;
       requestAnimationFrame(updateSkew);
     }
@@ -583,6 +590,8 @@ function initStatementWords() {
 /* ========== 3D TILT ========== */
 function init3DTilt() {
   if (prefersReducedMotion || isMobile) return;
+  /* 倾斜与 skew 循环共存:
+     用 dataset 存倾斜值, skew 循环读取后合并到 transform */
   const slides = document.querySelectorAll('.gallery-slide');
   slides.forEach(function(slide) {
     const inner = slide.querySelector('.gallery-slide-inner');
@@ -592,12 +601,15 @@ function init3DTilt() {
       const rect = slide.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width;
       const y = (e.clientY - rect.top) / rect.height;
-      const rotateX = (y - 0.5) * -20;
-      const rotateY = (x - 0.5) * 20;
-      inner.style.transform = 'perspective(1000px) rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) scale3d(1.02, 1.02, 1.02)';
+      inner.dataset.tiltX = ((y - 0.5) * -18).toFixed(1);
+      inner.dataset.tiltY = ((x - 0.5) * 18).toFixed(1);
+      /* 同时增加一点亮度 → 凸起感 */
+      inner.dataset.tiltBright = (1 + (1 - Math.abs(x - 0.5) * 2 - Math.abs(y - 0.5) * 2) * 0.08).toFixed(2);
     });
     slide.addEventListener('mouseleave', function() {
-      inner.style.transform = '';
+      inner.dataset.tiltX = '0';
+      inner.dataset.tiltY = '0';
+      inner.dataset.tiltBright = '1';
     });
   });
 }
@@ -605,29 +617,44 @@ function init3DTilt() {
 /* ========== PARALLAX DEPTH ========== */
 function initParallaxDepth() {
   if (prefersReducedMotion || isMobile) return;
-  const aboutPortrait = document.querySelector('.about-portrait');
-  const aboutLeft = document.querySelector('.about-left');
-  if (aboutPortrait) {
-    gsap.to(aboutPortrait, {
-      yPercent: -20,
+  // 肖像容器 + 图片独立错位 → 深度分层
+  var portraitWrap = document.querySelector('.about-portrait');
+  var portraitImg = document.querySelector('.about-portrait img');
+  if (portraitImg) {
+    gsap.fromTo(portraitImg, { scale: 1 }, {
+      scale: 1.15,
       ease: 'none',
       scrollTrigger: {
         trigger: '.about-section',
         start: 'top bottom',
         end: 'bottom top',
-        scrub: 1
+        scrub: 1.5
       }
     });
   }
-  if (aboutLeft) {
-    gsap.to(aboutLeft, {
+  if (portraitWrap) {
+    gsap.fromTo(portraitWrap, { yPercent: -8 }, {
       yPercent: 8,
       ease: 'none',
       scrollTrigger: {
         trigger: '.about-section',
         start: 'top bottom',
         end: 'bottom top',
-        scrub: 1
+        scrub: 1.5
+      }
+    });
+  }
+  // 简介文字: 独立移动产生分层深度 (避开 .reveal 冲突)
+  var aboutBio = document.querySelector('.about-bio');
+  if (aboutBio) {
+    gsap.fromTo(aboutBio, { y: 0 }, {
+      y: -36,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '.about-section',
+        start: 'top bottom',
+        end: 'bottom top',
+        scrub: 1.5
       }
     });
   }
@@ -643,21 +670,32 @@ function initPageTransition() {
       e.preventDefault();
       var target = document.querySelector(href);
       if (!target) return;
+
       var transition = document.createElement('div');
       transition.className = 'page-transition';
       document.body.appendChild(transition);
+
+      // 第1阶段: clip-path 扩张 (600ms 完全覆盖)
       requestAnimationFrame(function() {
         transition.classList.add('active');
       });
+
+      // 第2阶段: 覆盖完成后滚动到目标
       setTimeout(function() {
         if (lenis) {
-          lenis.scrollTo(target, { offset: 0 });
+          lenis.scrollTo(target, { offset: 0, duration: 0 });
         } else {
-          target.scrollIntoView({ behavior: 'auto' });
+          target.scrollIntoView({ behavior: 'instant' });
         }
+      }, 600);
+
+      // 第3阶段: clip-path 收缩 + 移除
+      setTimeout(function() {
         transition.classList.remove('active');
-        setTimeout(function() { transition.remove(); }, 800);
-      }, 400);
+        setTimeout(function() {
+          if (transition.parentNode) transition.parentNode.removeChild(transition);
+        }, 700);
+      }, 700);
     });
   });
 }
