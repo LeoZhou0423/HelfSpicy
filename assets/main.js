@@ -227,7 +227,7 @@ function initHeroParallax() {
   */
 
   // 背景组（在文字后面）— 手机端放大 s 值让视差可见
-  var sMult = isMobile ? 5 : 1;
+  var sMult = isMobile ? 10 : 1;
   const bgConfigs = [
     { file: '6.webp', s: 0.0 },
     { file: '5.webp', s: 0.008 * sMult },
@@ -304,8 +304,8 @@ function initHeroParallax() {
 
 function parityLoop() {
   if (!heroParallaxRunning) return;
-  heroMouseX += (heroTargetMouseX - heroMouseX) * 0.08;
-  heroMouseY += (heroTargetMouseY - heroMouseY) * 0.08;
+  heroMouseX += (heroTargetMouseX - heroMouseX) * 0.15;
+  heroMouseY += (heroTargetMouseY - heroMouseY) * 0.15;
   for (var i = 0; i < heroParallaxLayers.length; i++) {
     var el = heroParallaxLayers[i];
     var s = parseFloat(el.dataset.s);
