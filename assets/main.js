@@ -278,14 +278,18 @@ function initHeroParallax() {
   if (isMobile) {
     var hasOrientation = false;
     var orientationTimer = null;
+    var smoothGamma = 0;
+    var smoothBeta = 0;
     var handleOrientation = function(e) {
       if (!e.gamma && !e.beta) return;
       hasOrientation = true;
-      var gamma = e.gamma || 0; // 左右倾斜 -90..90
-      var beta = e.beta || 0;   // 前后倾斜 0..180
-      // 自然握持 beta≈70°，gamma≈0°；±30° 为满幅度
-      heroTargetMouseX = Math.max(-1, Math.min(1, gamma / 30));
-      heroTargetMouseY = Math.max(-1, Math.min(1, (beta - 70) / 30));
+      var gamma = e.gamma || 0;
+      var beta = e.beta || 0;
+      // EMA 滤波：新值 30% + 旧值 70%，平滑噪声
+      smoothGamma = smoothGamma * 0.7 + gamma * 0.3;
+      smoothBeta = smoothBeta * 0.7 + beta * 0.3;
+      heroTargetMouseX = Math.max(-1, Math.min(1, smoothGamma / 30));
+      heroTargetMouseY = Math.max(-1, Math.min(1, (smoothBeta - 70) / 30));
     };
 
     window.addEventListener('deviceorientation', handleOrientation);
@@ -304,8 +308,8 @@ function initHeroParallax() {
 
 function parityLoop() {
   if (!heroParallaxRunning) return;
-  heroMouseX += (heroTargetMouseX - heroMouseX) * 0.15;
-  heroMouseY += (heroTargetMouseY - heroMouseY) * 0.15;
+  heroMouseX += (heroTargetMouseX - heroMouseX) * 0.06;
+  heroMouseY += (heroTargetMouseY - heroMouseY) * 0.06;
   for (var i = 0; i < heroParallaxLayers.length; i++) {
     var el = heroParallaxLayers[i];
     var s = parseFloat(el.dataset.s);
