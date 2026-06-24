@@ -236,7 +236,6 @@ a, button, [role="button"] { cursor:none }
   display:flex; flex-direction:column; align-items:center; gap:24px;
   pointer-events:none;
   padding:48px 24px;
-  transform:translate(14%, -6%);
 }
 .hero-content::before {
   content:''; position:absolute; inset:-30% -20%;
@@ -673,6 +672,7 @@ const I18N = {
 };
 
 let currentLang = 'zh-CN';
+let heroScrollAnim;
 function setLang(lang) {
   currentLang = lang;
   document.body.dataset.lang = lang;
@@ -692,8 +692,7 @@ function setLang(lang) {
   // 重新播放 hero 文字动画
   gsap.fromTo('.hero-name span', { opacity:0, y:'110%', rotateX:-80 }, { opacity:1, y:'0%', rotateX:0, duration:1, stagger:0.03, ease:'power3.out' });
   gsap.fromTo('.hero-title span', { opacity:0, y:'110%', rotateX:-80 }, { opacity:1, y:'0%', rotateX:0, duration:1.2, stagger:0.025, ease:'power3.out' });
-  // 英文模式 hero-content 往上移更多
-  gsap.set('.hero-content', { xPercent: 14, yPercent: lang === 'en' ? -14 : -6 });
+  updateHeroScroll();
 }
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 const isMobile = window.matchMedia('(pointer:coarse)').matches;
@@ -925,6 +924,31 @@ function parityLoop() {
 }
 
 /* ========== HERO TEXT ANIMATIONS ========== */
+
+function updateHeroScroll() {
+  if (heroScrollAnim) {
+    heroScrollAnim.scrollTrigger.kill();
+    heroScrollAnim.kill();
+  }
+  // 英文模式 hero-content 往上移
+  if (currentLang === 'en') {
+    gsap.set('.hero-content', { yPercent: -10 });
+    heroScrollAnim = gsap.to('.hero-content', {
+      yPercent: -14, opacity: 0,
+      ease: 'none',
+      scrollTrigger: { trigger: '.hero', start: 'top top', end: '60% top', scrub: true }
+    });
+  } else {
+    // 中文模式不移动，保持原始位置
+    gsap.set('.hero-content', { yPercent: 0 });
+    heroScrollAnim = gsap.to('.hero-content', {
+      yPercent: -4, opacity: 0,
+      ease: 'none',
+      scrollTrigger: { trigger: '.hero', start: 'top top', end: '60% top', scrub: true }
+    });
+  }
+}
+
 function initHeroText() {
   if (prefersReducedMotion) {
     document.querySelectorAll('.hero-name span, .hero-title span').forEach(s => {
@@ -942,11 +966,7 @@ function initHeroText() {
     .to('.hero-scroll', { opacity: 1, duration: 0.8 }, '-=0.6')
     .to('.hero-scroll-line', { scaleY: 1, duration: 1, ease: 'power2.out' }, '-=0.6');
 
-  gsap.to('.hero-content', {
-    yPercent: currentLang === 'en' ? -18 : -10, opacity: 0,
-    ease: 'none',
-    scrollTrigger: { trigger: '.hero', start: 'top top', end: '60% top', scrub: true }
-  });
+  updateHeroScroll();
   gsap.to('.hero-fallback', {
     scale: 1, yPercent: 15,
     ease: 'none',
