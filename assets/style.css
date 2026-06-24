@@ -298,10 +298,15 @@ a, button, [role="button"] { cursor:none }
     flex-wrap:nowrap;
   }
   .gallery-track { will-change:auto }
-  .gallery-slide { flex-shrink:0; width:85vw; height:auto; aspect-ratio:auto; scroll-snap-align:start }
-  .gallery-slide-inner { height:auto }
+  .gallery-slide { flex-shrink:0; width:85vw; height:auto; aspect-ratio:auto; scroll-snap-align:start; transition:opacity 0.5s ease, transform 0.5s ease }
+  .gallery-slide-inner { height:auto; transition:transform 0.5s ease }
   .gallery-slide img { width:100%; height:auto; display:block }
   .gallery-caption, .gallery-index { opacity:1 !important; transform:none !important }
+
+  /* 手机端聚焦效果：当前 slide 全亮，两侧暗化缩小 */
+  .gallery-slide.mobile-inactive { opacity:0.55; transform:scale(0.94) }
+  .gallery-slide.mobile-active { opacity:1; transform:scale(1) }
+
 }
 
 .gallery-slide {
@@ -347,9 +352,9 @@ a, button, [role="button"] { cursor:none }
     text-align:center; min-height:100dvh; display:flex; align-items:center; justify-content:center;
     overflow:hidden;
   }
+  @media (max-width:900px) { .statement { padding:clamp(6vh, 8vw, 12vh) 24px; min-height:auto } }
 
   /* Page Transition — removed per user request, anchors use instant scroll */
-@media (max-width:900px) { .statement { padding:16vh 24px } }
 
 .statement .light-wash {
   position:absolute; top:-10%; left:-80px; width:120px; height:120%;
@@ -390,13 +395,22 @@ a, button, [role="button"] { cursor:none }
   position:relative; z-index:1; padding:22vh 56px; background:var(--bg);
   border-top:1px solid var(--line); overflow:hidden;
 }
-@media (max-width:900px) { .about-section { padding:12vh 24px } }
+@media (max-width:900px) { .about-section { padding:10vh 24px } }
 
 .about-inner {
   display:grid; grid-template-columns:1fr 1.1fr; gap:120px; align-items:center;
   max-width:1300px; margin:0 auto;
 }
-@media (max-width:900px) { .about-inner { grid-template-columns:1fr; gap:56px } }
+@media (max-width:900px) {
+  .about-inner { grid-template-columns:1fr; gap:56px; text-align:center }
+  .about-name { font-size:clamp(40px, 12vw, 80px); margin-bottom:28px }
+  .about-bio { font-size:15px; line-height:2; max-width:none; margin-bottom:36px }
+  .about-label { margin-bottom:24px }
+  .about-meta { display:flex; flex-wrap:wrap; justify-content:center; gap:0 32px }
+  .about-meta dd { margin-bottom:0 }
+  .about-portrait { max-width:260px; margin:0 auto }
+  .about-portrait img { aspect-ratio:1/1 }
+}
 
 .about-label {
   font-family:var(--font-mono); font-size:11px; letter-spacing:0.2em;

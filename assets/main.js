@@ -403,6 +403,21 @@ function initHorizontalGallery() {
     }
     wrap.addEventListener('scroll', updateCounter);
     updateCounter();
+
+    // 聚焦效果：当前 slide 最亮，其他暗化
+    var mobObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('mobile-active');
+          entry.target.classList.remove('mobile-inactive');
+        } else {
+          entry.target.classList.remove('mobile-active');
+          entry.target.classList.add('mobile-inactive');
+        }
+      });
+    }, { root: wrap, threshold: 0.5 });
+    slides.forEach(function(s) { mobObserver.observe(s); });
+
     return;
   }
 
