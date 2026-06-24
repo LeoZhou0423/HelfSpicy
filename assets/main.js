@@ -989,41 +989,7 @@ function initBGM() {
   audio.volume = 0;
   var saved = localStorage.getItem('bgm_playing');
   var isPlaying = false;
-  var fadeInterval = null;
-
-  function fadeIn() {
-    if (fadeInterval) clearInterval(fadeInterval);
-    audio.volume = 0;
-    audio.play().catch(function() {});
-    var startVol = 0;
-    fadeInterval = setInterval(function() {
-      startVol += 0.04;
-      if (startVol >= 0.5) {
-        audio.volume = 0.5;
-        clearInterval(fadeInterval);
-        fadeInterval = null;
-      } else {
-        audio.volume = startVol;
-      }
-    }, 80);
-  }
-
-  function fadeOut(cb) {
-    if (fadeInterval) clearInterval(fadeInterval);
-    var vol = audio.volume;
-    fadeInterval = setInterval(function() {
-      vol -= 0.06;
-      if (vol <= 0) {
-        audio.volume = 0;
-        audio.pause();
-        clearInterval(fadeInterval);
-        fadeInterval = null;
-        if (cb) cb();
-      } else {
-        audio.volume = vol;
-      }
-    }, 50);
-  }
+  var fadeTimer = null;
 
   function setState(playing) {
     isPlaying = playing;
@@ -1031,24 +997,46 @@ function initBGM() {
     localStorage.setItem('bgm_playing', playing ? '1' : '');
   }
 
-  btn.addEventListener('click', function() {
-    if (isPlaying) {
-      fadeOut(function() { setState(false); });
-    } else {
-      fadeIn();
-      setState(true);
-    }
+  function fadeIn() {
+    if (fadeTimer) { clearInterval(fadeTimer); fadeTimer = null; }
+    audio.volume = 0;
+    var p = audio.play();
+    if (p) p.catch(function(e) { console.warn('[BGM] play error:', e); });
+    var v = 0;
+    fadeTimer = setInterval(function() {
+      v += 0.05;
+      if (v >= 0.5) { audio.volume = 0.5; clearInterval(fadeTimer); fadeTimer = null; }
+      else audio.volume = v;
+    }, 60);
+  }
+
+  function fadeOut() {
+    if (fadeTimer) { clearInterval(fadeTimer); fadeTimer = null; }
+    var v = audio.volume;
+    fadeTimer = setInterval(function() {
+      v -= 0.08;
+      if (v <= 0) {
+        audio.pause();
+        audio.volume = 0;
+        clearInterval(fadeTimer); fadeTimer = null;
+      } else {
+        audio.volume = v;
+      }
+    }, 40);
+  }
+
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    if (isPlaying) { fadeOut(); setState(false); }
+    else { fadeIn(); setState(true); }
   });
 
-  // Resume saved state on user interaction (autoplay policy)
+  // Resume saved state on first user interaction (autoplay policy)
   if (saved === '1') {
     var resume = function() {
       document.removeEventListener('click', resume);
       document.removeEventListener('touchstart', resume);
-      if (!isPlaying) {
-        fadeIn();
-        setState(true);
-      }
+      if (!isPlaying) { fadeIn(); setState(true); }
     };
     document.addEventListener('click', resume);
     document.addEventListener('touchstart', resume);
