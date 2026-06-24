@@ -914,7 +914,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initAnchors();
   initNavScroll();
   init3DTilt();
-  initPageTransition();
 
   // 汉堡菜单
   var hamburger = document.getElementById('hamburger');

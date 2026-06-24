@@ -334,28 +334,7 @@ a, button, [role="button"] { cursor:none }
     overflow:hidden;
   }
 
-  /* Page Transition — 椭圆羽化蒙版 */
-  .page-transition {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: var(--bg);
-    pointer-events: none;
-    will-change: mask-size;
-    -webkit-mask-image: radial-gradient(ellipse at 50% 50%, black 22%, transparent 52%);
-    mask-image: radial-gradient(ellipse at 50% 50%, black 22%, transparent 52%);
-    -webkit-mask-size: 0%;
-    mask-size: 0%;
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-position: center;
-    mask-position: center;
-    transition: mask-size 0.7s cubic-bezier(0.76, 0, 0.24, 1);
-  }
-  .page-transition.active {
-    -webkit-mask-size: 350%;
-    mask-size: 350%;
-  }
+  /* Page Transition — removed per user request, anchors use instant scroll */
 @media (max-width:900px) { .statement { padding:16vh 24px } }
 
 .statement .light-wash {
