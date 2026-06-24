@@ -283,8 +283,6 @@ function initHeroParallax() {
     var tiltOrigin = null;
     var hasOrientation = false;
     var orientationTimer = null;
-    // beta 噪声比 gamma 大得多，单独轻 EMA 平滑
-    var smoothBeta = 70;
 
     var handleOrientation = function(e) {
       if (e.gamma === null && e.beta === null) return;
@@ -292,13 +290,10 @@ function initHeroParallax() {
       // 首次事件：记录基线（自然握持姿态）
       if (tiltOrigin === null) {
         tiltOrigin = { gamma: e.gamma, beta: e.beta };
-        smoothBeta = e.beta;
       }
-      // gamma（左右）：低噪声，直接用原始值
+      // 两轴都用原始值，统一走 lerp 平滑（γ 0.18 / β 0.10）
       heroTargetMouseX = Math.max(-1, Math.min(1, (e.gamma - tiltOrigin.gamma) / 70));
-      // beta（前后）：高噪声，轻 EMA 50/50 平滑后归一化
-      smoothBeta = smoothBeta * 0.5 + e.beta * 0.5;
-      heroTargetMouseY = Math.max(-1, Math.min(1, (smoothBeta - tiltOrigin.beta) / 70));
+      heroTargetMouseY = Math.max(-1, Math.min(1, (e.beta - tiltOrigin.beta) / 70));
     };
 
     // 直接添加监听器（Android / iOS 16.4+ HTTPS 无需权限）
@@ -337,9 +332,9 @@ function initHeroParallax() {
 
 function parityLoop() {
   if (!heroParallaxRunning) return;
-  // lerp 0.18 是社区公认甜区：跟手但不抖
+  // X（gamma/左右）：0.18 跟手快；Y（beta/前后）：0.10 平滑去噪声
   heroMouseX += (heroTargetMouseX - heroMouseX) * 0.18;
-  heroMouseY += (heroTargetMouseY - heroMouseY) * 0.18;
+  heroMouseY += (heroTargetMouseY - heroMouseY) * 0.10;
   for (var i = 0; i < heroParallaxLayers.length; i++) {
     var el = heroParallaxLayers[i];
     var s = parseFloat(el.dataset.s);
