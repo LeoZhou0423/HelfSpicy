@@ -238,6 +238,9 @@ a, button, [role="button"] { cursor:none }
   padding:48px 24px;
   transform:translate(6%, -18%);
 }
+body[data-lang="en"] .hero-content {
+  transform:translate(6%, -24%);
+}
 .hero-content::before {
   content:''; position:absolute; inset:-30% -20%;
   z-index:-1; pointer-events:none;
@@ -674,6 +677,7 @@ const I18N = {
 let currentLang = 'zh-CN';
 function setLang(lang) {
   currentLang = lang;
+  document.body.dataset.lang = lang;
   document.querySelectorAll('.lang-switcher button').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
   document.documentElement.lang = lang;
   document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -696,7 +700,7 @@ const isMobile = window.matchMedia('(pointer:coarse)').matches;
 
 document.querySelectorAll('.lang-switcher button').forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
 const savedLang = localStorage.getItem('lang');
-if (savedLang && I18N[savedLang]) setLang(savedLang);
+setLang(savedLang && I18N[savedLang] ? savedLang : 'zh-CN');
 
 /* ========== LENIS SMOOTH SCROLL ========== */
 let lenis;
