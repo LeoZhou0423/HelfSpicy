@@ -284,6 +284,7 @@ a, button, [role="button"] { cursor:none }
     height:auto; padding:0 0 10vh;
     overflow-x:auto; scroll-snap-type:x mandatory;
     -webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain;
   }
   .gallery-wrap::-webkit-scrollbar { display:none }
 }
@@ -298,7 +299,7 @@ a, button, [role="button"] { cursor:none }
     flex-wrap:nowrap;
   }
   .gallery-track { will-change:auto }
-  .gallery-slide { flex-shrink:0; width:85vw; height:auto; aspect-ratio:auto; scroll-snap-align:start; transition:opacity 0.5s ease, transform 0.5s ease }
+  .gallery-slide { flex-shrink:0; width:85vw; height:auto; aspect-ratio:auto; scroll-snap-align:start; scroll-snap-stop:always; transition:opacity 0.5s ease, transform 0.5s ease }
   .gallery-slide-inner { height:auto; transition:transform 0.5s ease }
   .gallery-slide img { width:100%; height:auto; display:block }
   .gallery-caption, .gallery-index { opacity:1 !important; transform:none !important }

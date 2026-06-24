@@ -264,17 +264,40 @@ function initHeroParallax() {
   bgConfigs.forEach((cfg, i) => createLayer(cfg, bgWrap, i));
   // fgConfigs.forEach((cfg, i) => createLayer(cfg, fgWrap, i));
 
-  // 桌面用 mousemove，移动端用 touchmove
+  // 桌面：mousemove；手机：陀螺仪 deviceorientation
   document.addEventListener('mousemove', function(e) {
     heroTargetMouseX = (e.clientX / window.innerWidth - 0.5) * 2;
     heroTargetMouseY = (e.clientY / window.innerHeight - 0.5) * 2;
   });
-  document.addEventListener('touchmove', function(e) {
-    if (e.touches.length > 0) {
-      heroTargetMouseX = (e.touches[0].clientX / window.innerWidth - 0.5) * 2;
-      heroTargetMouseY = (e.touches[0].clientY / window.innerHeight - 0.5) * 2;
+
+  if (isMobile) {
+    // 手机端：陀螺仪视差，需要 iOS 13+ 权限
+    var handleOrientation = function(e) {
+      var gamma = e.gamma || 0; // 左右倾斜 -90..90
+      var beta = e.beta || 0;   // 前后倾斜 -180..180
+      // 归一化到 -1..1，以 45° 为基准握持姿势
+      heroTargetMouseX = Math.max(-1, Math.min(1, gamma / 45));
+      heroTargetMouseY = Math.max(-1, Math.min(1, (beta - 45) / 45));
+    };
+
+    // iOS 13+ 需要权限
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      // 尝试静默请求（用户已经滚动交互后）
+      var tryRequest = function() {
+        document.removeEventListener('click', tryRequest);
+        document.removeEventListener('touchstart', tryRequest);
+        DeviceOrientationEvent.requestPermission().then(function(state) {
+          if (state === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation);
+          }
+        }).catch(function() {});
+      };
+      document.addEventListener('click', tryRequest, { once: true });
+      document.addEventListener('touchstart', tryRequest, { once: true });
+    } else if (typeof DeviceOrientationEvent !== 'undefined') {
+      window.addEventListener('deviceorientation', handleOrientation);
     }
-  }, { passive: true });
+  }
 
   heroParallaxRunning = true;
   requestAnimationFrame(parityLoop);
@@ -287,8 +310,10 @@ function parityLoop() {
   for (var i = 0; i < heroParallaxLayers.length; i++) {
     var el = heroParallaxLayers[i];
     var s = parseFloat(el.dataset.s);
-    var dx = heroMouseX * s * 200;
-    var dy = heroMouseY * s * 120;
+    var multX = isMobile ? 80 : 200;
+    var multY = isMobile ? 50 : 120;
+    var dx = heroMouseX * s * multX;
+    var dy = heroMouseY * s * multY;
     el.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
   }
   requestAnimationFrame(parityLoop);
