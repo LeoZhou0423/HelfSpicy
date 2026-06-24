@@ -334,18 +334,20 @@ a, button, [role="button"] { cursor:none }
     overflow:hidden;
   }
 
-  /* Page Transition */
+  /* Page Transition (GPU-accelerated scale wipe) */
   .page-transition {
     position: fixed;
     inset: 0;
     z-index: 9999;
     background: var(--bg);
     pointer-events: none;
-    clip-path: circle(0% at 50% 50%);
-    transition: clip-path 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+    transform-origin: 50% 50%;
+    transform: scale(0);
+    transition: transform 0.6s cubic-bezier(0.76, 0, 0.24, 1);
   }
   .page-transition.active {
-    clip-path: circle(150% at 50% 50%);
+    transform: scale(1);
   }
 @media (max-width:900px) { .statement { padding:16vh 24px } }
 

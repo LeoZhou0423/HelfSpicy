@@ -27,6 +27,7 @@ const I18N = {
 
 let currentLang = 'zh-CN';
 let heroScrollAnim;
+let isFirstSetLang = true;
 function setLang(lang) {
   currentLang = lang;
   document.body.dataset.lang = lang;
@@ -43,9 +44,19 @@ function setLang(lang) {
   localStorage.setItem('lang', lang);
   splitTextRefresh();
   initStatementWords(); // 重新创建 ScrollTrigger
-  // 重新播放 hero 文字动画
-  gsap.fromTo('.hero-name span', { opacity:0, y:'110%', rotateX:-80 }, { opacity:1, y:'0%', rotateX:0, duration:1, stagger:0.03, ease:'power3.out' });
-  gsap.fromTo('.hero-title span', { opacity:0, y:'110%', rotateX:-80 }, { opacity:1, y:'0%', rotateX:0, duration:1.2, stagger:0.025, ease:'power3.out' });
+  // 同步 nav hover 翻转文字
+  document.querySelectorAll('.nav-links a[data-text]').forEach(function(link) {
+    var span = link.querySelector('[data-i18n]');
+    if (span && span.dataset.i18n && I18N[lang] && I18N[lang][span.dataset.i18n]) {
+      link.dataset.text = I18N[lang][span.dataset.i18n];
+    }
+  });
+  // 首次加载由 initCinematicEntrance 负责入场动画，切换语言时才重新播放
+  if (!isFirstSetLang) {
+    gsap.fromTo('.hero-name span', { opacity:0, y:'110%', rotateX:-80 }, { opacity:1, y:'0%', rotateX:0, duration:1, stagger:0.03, ease:'power3.out' });
+    gsap.fromTo('.hero-title span', { opacity:0, y:'110%', rotateX:-80 }, { opacity:1, y:'0%', rotateX:0, duration:1.2, stagger:0.025, ease:'power3.out' });
+  }
+  isFirstSetLang = false;
   updateHeroScroll();
 }
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -683,27 +694,24 @@ function initPageTransition() {
       transition.className = 'page-transition';
       document.body.appendChild(transition);
 
-      // 第1阶段: clip-path 扩张 (600ms 完全覆盖)
+      // 第1阶段: scale 扩张覆盖 (0.6s)
       requestAnimationFrame(function() {
         transition.classList.add('active');
       });
 
-      // 第2阶段: 覆盖完成后滚动到目标
+      // 第2阶段: 覆盖完成后立即滚动
       setTimeout(function() {
         if (lenis) {
           lenis.scrollTo(target, { offset: 0, duration: 0 });
         } else {
           target.scrollIntoView({ behavior: 'instant' });
         }
-      }, 600);
-
-      // 第3阶段: clip-path 收缩 + 移除
-      setTimeout(function() {
+        // 滚动完成后开始 uncover
         transition.classList.remove('active');
         setTimeout(function() {
           if (transition.parentNode) transition.parentNode.removeChild(transition);
-        }, 700);
-      }, 700);
+        }, 650);
+      }, 500);
     });
   });
 }
