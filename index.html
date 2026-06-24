@@ -860,11 +860,11 @@ function initHeroParallax() {
     { file: '6.webp', s: 0.0 },
     { file: '5.webp', s: 0.008 },
     { file: '4.webp', s: 0.015 },
+    { file: '3.webp', s: 0.025 },
   ];
 
   // 前景组（在文字前面）
   const fgConfigs = [
-    { file: '3.webp', s: 0.025 },
     { file: '2.webp', s: 0.03 },
     { file: '1.webp', s: 0.06 },
   ];
@@ -879,12 +879,9 @@ function initHeroParallax() {
       will-change:transform;
       transition:opacity 0.6s ease;
       opacity:0;
-      ${isForeground ? 'opacity:0;mix-blend-mode:screen;' : ''}
     `;
     el.dataset.s = cfg.s;
-    el.onload = function() {
-      this.style.opacity = isForeground ? '0.5' : '1';
-    };
+    el.onload = function() { this.style.opacity = '1'; };
     parent.appendChild(el);
     heroParallaxLayers.push(el);
   }
