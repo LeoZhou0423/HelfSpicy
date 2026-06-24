@@ -679,42 +679,6 @@ function initParallaxDepth() {
   }
 }
 
-/* ========== PAGE TRANSITION ========== */
-function initPageTransition() {
-  var navLinks = document.querySelectorAll('.nav-links a, .mobile-menu a');
-  navLinks.forEach(function(link) {
-    link.addEventListener('click', function(e) {
-      var href = link.getAttribute('href');
-      if (!href || !href.startsWith('#')) return;
-      e.preventDefault();
-      var target = document.querySelector(href);
-      if (!target) return;
-
-      var transition = document.createElement('div');
-      transition.className = 'page-transition';
-      document.body.appendChild(transition);
-
-      // 第1阶段: 椭圆羽化蒙版扩张 (0.7s)
-      requestAnimationFrame(function() {
-        transition.classList.add('active');
-      });
-
-      // 第2阶段: 覆盖后滚动 + 揭开
-      setTimeout(function() {
-        if (lenis) {
-          lenis.scrollTo(target, { offset: 0, duration: 0 });
-        } else {
-          target.scrollIntoView({ behavior: 'instant' });
-        }
-        transition.classList.remove('active');
-        setTimeout(function() {
-          if (transition.parentNode) transition.parentNode.removeChild(transition);
-        }, 750);
-      }, 500);
-    });
-  });
-}
-
 function initAbout() {
   if (prefersReducedMotion) return;
   const portrait = document.querySelector('.about-portrait img');
