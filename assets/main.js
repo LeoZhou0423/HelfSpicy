@@ -227,7 +227,7 @@ function initHeroParallax() {
   */
 
   // 背景组（在文字后面）— 手机端放大 s 值让视差可见
-  var sMult = isMobile ? 10 : 1;
+  var sMult = isMobile ? 6 : 1;
   const bgConfigs = [
     { file: '6.webp', s: 0.0 },
     { file: '5.webp', s: 0.008 * sMult },
@@ -246,8 +246,8 @@ function initHeroParallax() {
     el.src = `img/${cfg.file}`;
     el.alt = '';
     el.setAttribute('aria-hidden', 'true');
-    // 手机端缩小初始缩放，避免过度裁剪
-    var initScale = isMobile ? 1.05 : 1.15;
+    // 手机端：放大 buffer 避免视差穿帮
+    var initScale = isMobile ? 1.12 : 1.15;
     el.style.cssText = `
       position:absolute;inset:0;
       width:100%;height:100%;
@@ -291,9 +291,9 @@ function initHeroParallax() {
       if (tiltOrigin === null) {
         tiltOrigin = { gamma: e.gamma, beta: e.beta };
       }
-      // 相对基线的 delta，÷25 归一化到 ≈±1（±25° 倾斜 = 满幅）
-      heroTargetMouseX = Math.max(-1, Math.min(1, (e.gamma - tiltOrigin.gamma) / 25));
-      heroTargetMouseY = Math.max(-1, Math.min(1, (e.beta - tiltOrigin.beta) / 25));
+      // 相对基线的 delta，÷70 归一化（±35° 倾斜 ≈ 一半行程）
+      heroTargetMouseX = Math.max(-1, Math.min(1, (e.gamma - tiltOrigin.gamma) / 70));
+      heroTargetMouseY = Math.max(-1, Math.min(1, (e.beta - tiltOrigin.beta) / 70));
     };
 
     // 直接添加监听器（Android / iOS 16.4+ HTTPS 无需权限）
@@ -339,8 +339,8 @@ function parityLoop() {
     var el = heroParallaxLayers[i];
     var s = parseFloat(el.dataset.s);
     // 桌面端鼠标可扫全屏，移动端陀螺仪倾斜范围有限，故 mult 更大
-    var multX = isMobile ? 250 : 200;
-    var multY = isMobile ? 160 : 120;
+    var multX = isMobile ? 120 : 200;
+    var multY = isMobile ? 80 : 120;
     var dx = heroMouseX * s * multX;
     var dy = heroMouseY * s * multY;
     el.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
