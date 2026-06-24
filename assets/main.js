@@ -283,6 +283,8 @@ function initHeroParallax() {
     var tiltOrigin = null;
     var hasOrientation = false;
     var orientationTimer = null;
+    // beta 噪声比 gamma 大得多，单独轻 EMA 平滑
+    var smoothBeta = 70;
 
     var handleOrientation = function(e) {
       if (e.gamma === null && e.beta === null) return;
@@ -290,10 +292,13 @@ function initHeroParallax() {
       // 首次事件：记录基线（自然握持姿态）
       if (tiltOrigin === null) {
         tiltOrigin = { gamma: e.gamma, beta: e.beta };
+        smoothBeta = e.beta;
       }
-      // 相对基线的 delta，÷70 归一化（±35° 倾斜 ≈ 一半行程）
+      // gamma（左右）：低噪声，直接用原始值
       heroTargetMouseX = Math.max(-1, Math.min(1, (e.gamma - tiltOrigin.gamma) / 70));
-      heroTargetMouseY = Math.max(-1, Math.min(1, (e.beta - tiltOrigin.beta) / 70));
+      // beta（前后）：高噪声，轻 EMA 50/50 平滑后归一化
+      smoothBeta = smoothBeta * 0.5 + e.beta * 0.5;
+      heroTargetMouseY = Math.max(-1, Math.min(1, (smoothBeta - tiltOrigin.beta) / 70));
     };
 
     // 直接添加监听器（Android / iOS 16.4+ HTTPS 无需权限）
