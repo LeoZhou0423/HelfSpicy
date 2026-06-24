@@ -869,7 +869,7 @@ function initHeroParallax() {
     { file: '1.webp', s: 0.06 },
   ];
 
-  function createLayer(cfg, parent) {
+  function createLayer(cfg, parent, isForeground) {
     const el = document.createElement('img');
     el.src = `img/${cfg.file}`;
     el.style.cssText = `
@@ -879,15 +879,18 @@ function initHeroParallax() {
       will-change:transform;
       transition:opacity 0.6s ease;
       opacity:0;
+      ${isForeground ? 'opacity:0;mix-blend-mode:screen;' : ''}
     `;
     el.dataset.s = cfg.s;
-    el.onload = function() { this.style.opacity = '1'; };
+    el.onload = function() {
+      this.style.opacity = isForeground ? '0.5' : '1';
+    };
     parent.appendChild(el);
     heroParallaxLayers.push(el);
   }
 
-  bgConfigs.forEach(cfg => createLayer(cfg, bgWrap));
-  fgConfigs.forEach(cfg => createLayer(cfg, fgWrap));
+  bgConfigs.forEach(cfg => createLayer(cfg, bgWrap, false));
+  fgConfigs.forEach(cfg => createLayer(cfg, fgWrap, true));
 
   // 桌面用 mousemove，移动端用 touchmove
   document.addEventListener('mousemove', function(e) {
