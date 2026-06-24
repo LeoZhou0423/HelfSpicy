@@ -399,13 +399,21 @@ function initHorizontalGallery() {
       document.body.appendChild(counter);
     }
 
+    var lastSlide = slides[slides.length - 1];
+    var lastImg = lastSlide.querySelector('img');
+    var lastSlideW = lastImg && lastImg.naturalWidth > 0
+      ? targetH * (lastImg.naturalWidth / lastImg.naturalHeight)
+      : 400;
+    var centerExtra = Math.max(0, (window.innerWidth - lastSlideW) / 2);
+    var totalScroll = totalW + centerExtra;
+
     var trackTween = gsap.to(track, {
-      x: -totalW,
+      x: -totalScroll,
       ease: 'none',
       scrollTrigger: {
         trigger: wrap,
         start: 'top top',
-        end: function() { return '+=' + (totalW * 0.9); },
+        end: function() { return '+=' + totalScroll; },
         pin: true,
         scrub: 1,
         invalidateOnRefresh: true,
