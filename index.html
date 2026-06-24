@@ -854,10 +854,12 @@ function initHeroParallax() {
   bgWrap.style.cssText = 'position:absolute;inset:0;z-index:5;overflow:hidden;';
   container.insertBefore(bgWrap, container.firstChild);
 
-  // 前景组：遮挡文字 (z-index: 30)
+  // 前景组：遮挡文字 (z-index: 30) - 已移除
+  /*
   const fgWrap = document.createElement('div');
   fgWrap.style.cssText = 'position:absolute;inset:0;z-index:30;overflow:hidden;pointer-events:none;';
   container.appendChild(fgWrap);
+  */
 
   // 背景组（在文字后面）
   const bgConfigs = [
@@ -867,13 +869,13 @@ function initHeroParallax() {
     { file: '3.webp', s: 0.025 },
   ];
 
-  // 前景组（在文字前面）
-  const fgConfigs = [
-    { file: '2.webp', s: 0.03 },
-    { file: '1.webp', s: 0.06 },
-  ];
+  // 前景组（在文字前面）- 已移除
+  // const fgConfigs = [
+  //   { file: '2.webp', s: 0.03 },
+  //   { file: '1.webp', s: 0.06 },
+  // ];
 
-  function createLayer(cfg, parent, isForeground) {
+  function createLayer(cfg, parent) {
     const el = document.createElement('img');
     el.src = `img/${cfg.file}`;
     el.style.cssText = `
@@ -890,8 +892,8 @@ function initHeroParallax() {
     heroParallaxLayers.push(el);
   }
 
-  bgConfigs.forEach(cfg => createLayer(cfg, bgWrap, false));
-  fgConfigs.forEach(cfg => createLayer(cfg, fgWrap, true));
+  bgConfigs.forEach(cfg => createLayer(cfg, bgWrap));
+  // fgConfigs.forEach(cfg => createLayer(cfg, fgWrap));
 
   // 桌面用 mousemove，移动端用 touchmove
   document.addEventListener('mousemove', function(e) {
@@ -930,23 +932,13 @@ function updateHeroScroll() {
     heroScrollAnim.scrollTrigger.kill();
     heroScrollAnim.kill();
   }
-  // 英文模式 hero-content 往上移
-  if (currentLang === 'en') {
-    gsap.set('.hero-content', { yPercent: -10 });
-    heroScrollAnim = gsap.to('.hero-content', {
-      yPercent: -14, opacity: 0,
-      ease: 'none',
-      scrollTrigger: { trigger: '.hero', start: 'top top', end: '60% top', scrub: true }
-    });
-  } else {
-    // 中文模式不移动，保持原始位置
-    gsap.set('.hero-content', { yPercent: 0 });
-    heroScrollAnim = gsap.to('.hero-content', {
-      yPercent: -4, opacity: 0,
-      ease: 'none',
-      scrollTrigger: { trigger: '.hero', start: 'top top', end: '60% top', scrub: true }
-    });
-  }
+  // 恢复统一位置，不再区分中英文
+  gsap.set('.hero-content', { yPercent: 0 });
+  heroScrollAnim = gsap.to('.hero-content', {
+    yPercent: -4, opacity: 0,
+    ease: 'none',
+    scrollTrigger: { trigger: '.hero', start: 'top top', end: '60% top', scrub: true }
+  });
 }
 
 function initHeroText() {
