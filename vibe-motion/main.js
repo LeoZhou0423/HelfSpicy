@@ -51,15 +51,31 @@
   }
 
   function waitForReady(callback) {
+    let attempts = 0;
     const check = function() {
+      attempts++;
       const win = getInnerWin();
       const doc = getInnerDoc();
-      if (win && doc && doc.readyState === 'complete' &&
+
+      if (!win || !doc || !doc.body || !doc.body.children.length) {
+        if (attempts > 25) {
+          console.error('[Vibe Motion] iframe did not load. Use an HTTP server (e.g. python -m http.server 8080) instead of opening file://');
+          return;
+        }
+        setTimeout(check, 200);
+        return;
+      }
+
+      if (doc.readyState === 'complete' &&
           typeof win.gsap !== 'undefined' &&
           doc.querySelector('.gallery-slide')) {
-        // 再预留 600ms 让主站 entrance 动画完成
-        setTimeout(callback, 600);
+        console.log('[Vibe Motion] iframe ready, starting flow');
+        setTimeout(callback, 800);
       } else {
+        if (attempts > 80) {
+          console.error('[Vibe Motion] timeout waiting for GSAP / gallery in iframe');
+          return;
+        }
         setTimeout(check, 200);
       }
     };
@@ -98,7 +114,7 @@
     // 3.0 - 4.8s: hover nav gallery link
     const galleryLink = doc.querySelector('.nav-links a[href="#gallery"]');
     const linkCenter = getCenter(galleryLink);
-    tl.to(cursor, { x: linkCenter.x, y: linkCenter.y, duration: 0.8, ease: 'power2.inOut' }, 3.0)
+    moveCursor(linkCenter.x, linkCenter.y, 0.8, 3.0, tl)
       .add(function() { dispatch(galleryLink, 'mouseenter', linkCenter.x, linkCenter.y); }, 3.6)
       .add(function() { dispatch(galleryLink, 'mouseleave', linkCenter.x, linkCenter.y); }, 4.4);
 
@@ -113,7 +129,7 @@
     firstThree.forEach(function(slide, i) {
       const start = 7.0 + i * 1.4;
       const center = getCenter(slide);
-      tl.to(cursor, { x: center.x, y: center.y, duration: 0.6, ease: 'power2.inOut' }, start)
+      moveCursor(center.x, center.y, 0.6, start, tl)
         .add(function() { dispatch(slide, 'mouseenter', center.x, center.y); }, start + 0.4)
         .add(function() {
           const rect = slide.getBoundingClientRect();
@@ -129,19 +145,19 @@
     const statement = doc.getElementById('statement-text') || doc.querySelector('.statement');
     const statementTop = statement ? (statement.closest('section') || statement).offsetTop : (galleryTop + 2500);
     scrollTo(statementTop, 1.8, 13.0, tl);
-    tl.to(cursor, { x: ww * 0.5, y: wh * 0.5, duration: 1.2, ease: 'power2.inOut' }, 13.2);
+    moveCursor(ww * 0.5, wh * 0.5, 1.2, 13.2, tl);
 
     // 15.5 - 18.0s: scroll to about
     const about = doc.getElementById('about');
     const aboutTop = about ? about.offsetTop : (statementTop + 800);
     scrollTo(aboutTop, 1.8, 15.5, tl);
-    tl.to(cursor, { x: ww * 0.25, y: wh * 0.45, duration: 1.2, ease: 'power2.inOut' }, 15.8);
+    moveCursor(ww * 0.25, wh * 0.45, 1.2, 15.8, tl);
 
     // 18.0 - 20.0s: hover about portrait
     const portrait = doc.querySelector('.about-portrait');
     if (portrait) {
       const pc = getCenter(portrait);
-      tl.to(cursor, { x: pc.x, y: pc.y, duration: 0.8, ease: 'power2.inOut' }, 18.0)
+      moveCursor(pc.x, pc.y, 0.8, 18.0, tl)
         .add(function() { dispatch(portrait, 'mouseenter', pc.x, pc.y); }, 18.5)
         .add(function() { dispatch(portrait, 'mousemove', pc.x, pc.y); }, 18.6)
         .add(function() { dispatch(portrait, 'mouseleave', pc.x, pc.y); }, 19.4);
@@ -149,7 +165,7 @@
 
     // 20.0 - 22.0s: back to top
     scrollTo(0, 1.5, 20.0, tl);
-    tl.to(cursor, { x: ww * 0.5, y: wh * 0.5, duration: 1.2 }, 20.0);
+    moveCursor(ww * 0.5, wh * 0.5, 1.2, 20.0, tl);
 
     return tl;
   }
