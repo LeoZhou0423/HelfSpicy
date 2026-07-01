@@ -200,9 +200,14 @@ a, button, [role="button"] { cursor:none }
 .mobile-menu.active a:nth-child(2) { transition-delay:0.08s }
 
 @media (max-width:900px) {
+  .nav { padding:20px; flex-wrap:nowrap }
+  .nav-logo { font-size:11px; letter-spacing:0.06em }
   .nav-links { display:none }
-  .hamburger { display:block }
-  .nav-right { gap:8px }
+  .hamburger { display:block; width:24px; height:18px }
+  .hamburger span:first-child { top:3px }
+  .hamburger span:last-child { bottom:3px }
+  .nav-right { gap:6px }
+  .lang-switcher button { padding:4px 5px; font-size:10px }
 }
 
 /* Hero */
@@ -517,24 +522,39 @@ a, button, [role="button"] { cursor:none }
 .split-line > span { display:inline-block }
 
 @media (pointer:coarse) {
-  body, a, button { cursor:auto }
+  body, a, button { cursor:auto; -webkit-tap-highlight-color:transparent }
   .cursor { display:none }
+  .grain { opacity:0.02 }
 }
 
 @media (max-width:600px) {
-  .nav { padding:16px 20px }
+  .nav { padding:14px 16px }
+  .nav-logo { font-size:10px }
+  .nav-right { gap:4px }
+  .lang-switcher button { padding:3px 4px; font-size:9px }
   .hero-content { padding:24px 16px; gap:16px }
   .hero-name { font-size:10px }
-  .hero-title { padding:0 16px; font-size:clamp(36px, 12vw, 52px) }
-  .hero-scroll { bottom:32px }
+  .hero-title { padding:0 16px; font-size:clamp(34px, 11vw, 48px); line-height:1.1 }
+  .hero-scroll { bottom:28px }
+  .hero-scroll-line { height:48px }
   .gallery-header { padding:8vh 20px 4vh }
+  .gallery-header h2 { font-size:clamp(32px, 10vw, 48px) }
+  .gallery-track { padding:0 16px; gap:16px }
+  .gallery-slide { width:82vw }
   .gallery-caption { font-size:9px; bottom:16px; left:16px }
   .gallery-index { top:12px; right:12px; font-size:9px }
   .statement { padding:12vh 20px }
   .about-section { padding:10vh 20px }
-  .about-portrait { max-width:240px; margin:0 auto }
+  .about-portrait { max-width:220px; margin:0 auto }
+  .about-name { font-size:clamp(36px, 11vw, 64px) }
+  .about-bio { font-size:14px; line-height:1.9 }
   .footer { padding:5vh 20px }
   .footer-socials { gap:20px }
+
+  /* Lightbox mobile */
+  .lightbox-img { max-width:96vw; max-height:78vh }
+  .lightbox-close { top:16px; right:16px; width:44px; height:44px }
+  .lightbox-info { bottom:24px }
 
   /* Preloader mobile */
   .preloader { gap:24px }
@@ -545,11 +565,10 @@ a, button, [role="button"] { cursor:none }
 
 /* ========== BGM TOGGLE ========== */
 .bgm-toggle {
-  position:fixed; bottom:32px; right:32px; z-index:900;
   display:flex; align-items:center; gap:8px;
   background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
   backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
-  border-radius:20px; padding:8px 16px;
+  border-radius:20px; padding:6px 12px;
   cursor:pointer; color:rgba(255,255,255,0.4);
   font-family:var(--font-mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase;
   transition:all 0.3s ease;
@@ -582,15 +601,20 @@ a, button, [role="button"] { cursor:none }
   user-select:none;
 }
 
-@media (pointer:coarse) {
+@media (max-width:900px) {
   .bgm-toggle {
-    bottom:20px; right:20px;
-    padding:10px 14px;
+    padding:6px 10px;
+  }
+  .bgm-toggle .bgm-label {
+    display:none;
   }
 }
+
 @media (max-width:600px) {
   .bgm-toggle {
-    bottom:16px; right:16px;
-    padding:8px 12px;
+    padding:5px 8px;
+  }
+  .bgm-icon {
+    width:14px; height:14px;
   }
 }

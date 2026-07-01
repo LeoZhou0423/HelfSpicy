@@ -59,6 +59,26 @@ function setLang(lang) {
   isFirstSetLang = false;
   updateHeroScroll();
 }
+/* ========== GSAP LOAD GUARD ========== */
+function waitForGsapReady(callback, timeout) {
+  timeout = timeout || 8000;
+  if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+    callback();
+    return;
+  }
+  var elapsed = 0;
+  var timer = setInterval(function() {
+    elapsed += 100;
+    if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+      clearInterval(timer);
+      callback();
+    } else if (elapsed >= timeout) {
+      clearInterval(timer);
+      console.warn('[HalfSpicy] GSAP/ScrollTrigger failed to load within timeout');      callback();
+    }
+  }, 100);
+}
+
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 const isMobile = window.matchMedia('(pointer:coarse)').matches;
 
@@ -243,9 +263,12 @@ function initHeroParallax() {
 
   function createLayer(cfg, parent, index) {
     const el = document.createElement('img');
-    el.src = `img/${cfg.file}`;
     el.alt = '';
     el.setAttribute('aria-hidden', 'true');
+    // 先绑定 onload 再设置 src，避免缓存命中导致事件 missed
+    el.onload = function() { this.style.opacity = '1'; };
+    el.onerror = function() { this.style.opacity = '1'; };
+    el.src = `img/${cfg.file}`;
     // 手机端：放大 buffer 避免视差穿帮
     var initScale = isMobile ? 1.12 : 1.15;
     el.style.cssText = `
@@ -259,9 +282,7 @@ function initHeroParallax() {
     `;
     el.dataset.s = cfg.s;
     el.dataset.scale = initScale;
-    el.onload = function() { 
-      this.style.opacity = '1';
-    };
+    if (el.complete && el.naturalWidth > 0) el.style.opacity = '1';
     parent.appendChild(el);
     heroParallaxLayers.push(el);
   }
@@ -373,6 +394,18 @@ function initCinematicEntrance() {
     return;
   }
 
+  // 如果 GSAP 尚未就绪，先保证文字可见，避免白屏/缺光效
+  if (typeof gsap === 'undefined') {
+    document.querySelectorAll('.hero-name, .hero-title').forEach(function(el) { el.style.opacity = 1; });
+    var nav = document.querySelector('.nav');
+    if (nav) { nav.style.opacity = 1; nav.style.transform = 'none'; }
+    var grain = document.querySelector('.grain');
+    if (grain) grain.style.opacity = 0.035;
+    var heroScroll = document.querySelector('.hero-scroll');
+    if (heroScroll) heroScroll.style.opacity = 1;
+    return;
+  }
+
   splitText('.hero-name');
   splitText('.hero-title');
 
@@ -399,6 +432,8 @@ function initHeroText() {
     });
     return;
   }
+
+  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
 
   updateHeroScroll();
 
@@ -934,21 +969,23 @@ function initPreloader() {
     progress.style.width = '100%';
     percent.textContent = '100%';
 
+    function runEntrance() {
+      preloader.style.display = 'none';
+      document.body.style.overflow = '';
+      // 等待 GSAP 就绪后再执行依赖它的入场动画，避免首刷光效丢失
+      waitForGsapReady(function() {
+        if (typeof initCinematicEntrance === 'function') initCinematicEntrance();
+        if (typeof initHeroText === 'function') initHeroText();
+      }, 8000);
+    }
+
     if (typeof gsap !== 'undefined') {
       gsap.to(preloader, {
         yPercent: -100, duration: 1.2, ease: 'power4.inOut',
-      onComplete: function() {
-        preloader.style.display = 'none';
-        document.body.style.overflow = '';
-        if (typeof initCinematicEntrance === 'function') initCinematicEntrance();
-        if (typeof initHeroText === 'function') initHeroText();
-      }
+        onComplete: runEntrance
       });
     } else {
-      preloader.style.display = 'none';
-      document.body.style.overflow = '';
-      if (typeof initCinematicEntrance === 'function') initCinematicEntrance();
-      if (typeof initHeroText === 'function') initHeroText();
+      runEntrance();
     }
   }
 
@@ -991,6 +1028,11 @@ function initBGM() {
   var isPlaying = false;
   var fadeTimer = null;
 
+  function attemptPlay() {
+    if (!isPlaying) return;
+    fadeIn();
+  }
+
   function setState(playing) {
     isPlaying = playing;
     btn.dataset.playing = playing ? 'true' : 'false';
@@ -1031,27 +1073,29 @@ function initBGM() {
     else { fadeIn(); setState(true); }
   });
 
-  // Resume saved state on first user interaction (autoplay policy)
-  if (saved === '1') {
-    var resume = function() {
-      document.removeEventListener('click', resume);
-      document.removeEventListener('touchstart', resume);
-      if (!isPlaying) { fadeIn(); setState(true); }
-    };
-    document.addEventListener('click', resume);
-    document.addEventListener('touchstart', resume);
+  // 默认开启；若用户明确关闭过（saved === '0'）则保持静音
+  if (saved !== '0') {
+    setState(true);
+    attemptPlay();
   }
+
+  // 浏览器自动播放策略：首次用户交互后若仍被暂停则再次尝试播放
+  function resumeOnInteraction() {
+    document.removeEventListener('click', resumeOnInteraction);
+    document.removeEventListener('touchstart', resumeOnInteraction);
+    if (isPlaying && audio.paused) attemptPlay();
+  }
+  document.addEventListener('click', resumeOnInteraction);
+  document.addEventListener('touchstart', resumeOnInteraction);
 }
 
 /* ========== INIT ========== */
 document.addEventListener('DOMContentLoaded', () => {
   initPreloader();
 
-  /* 检查 GSAP/ScrollTrigger 是否从 CDN 成功加载 */
-  const gsapReady = typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined';
-
-  if (gsapReady) {
-    try { gsap.registerPlugin(ScrollTrigger); } catch (e) { console.warn('[HelfSpicy] GSAP registerPlugin failed:', e); }
+  // 等待 GSAP/ScrollTrigger 就绪后再初始化依赖动画，避免 CDN 首刷未命中导致光效丢失
+  waitForGsapReady(function() {
+    try { gsap.registerPlugin(ScrollTrigger); } catch (e) { console.warn('[HalfSpicy] GSAP registerPlugin failed:', e); }
     initLenis();
     initMagnetic();
     initScrollProgress();
@@ -1061,9 +1105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initAbout();
     initLightbox();
     initParallaxDepth();
-  } else {
-    console.warn('[HelfSpicy] GSAP/ScrollTrigger not loaded — animations disabled. CDN may be blocked.');
-  }
+  }, 8000);
 
   /* 以下功能不依赖 GSAP，始终运行 */
   initCursor();
