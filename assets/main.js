@@ -899,10 +899,18 @@ function initPreloader() {
   if (!preloader) return;
 
   var done = false;
+  // 页面上已有的 img（gallery、about 等）
   var images = [].filter.call(document.querySelectorAll('img'), function(el) { return el.getAttribute('src') && el.getAttribute('src') !== ''; });
+  // 关键动态资源：Hero 视差层，必须在预加载阶段完成，否则进场后会是空白
+  var criticalSrcs = ['img/6.webp', 'img/5.webp', 'img/4.webp', 'img/3.webp'];
+  criticalSrcs.forEach(function(src) {
+    var img = new Image();
+    img.src = src;
+    images.push(img);
+  });
   var total = images.length;
   var loaded = 0;
-  var minDisplay = 1200; // 最短显示 1.2s，防止闪烁
+  var minDisplay = 1500; // 最短显示 1.5s，防止闪烁
   var startTime = performance.now();
   var fallbackTimer = null;
   var stuckTimer = null;     // 卡住检测
@@ -1012,8 +1020,8 @@ function initPreloader() {
     return;
   }
 
-  // 兜底：6s 强制关闭（图片已压缩减少等待感）
-  fallbackTimer = setTimeout(finish, 6000);
+  // 兜底：15s 强制关闭，给大图和慢网足够时间；如果卡住会先有脉冲动画提示
+  fallbackTimer = setTimeout(finish, 15000);
 
   updateProgress();
 }
