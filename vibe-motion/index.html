@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HalfSpicy · Vibe Motion</title>
+  <link rel="preconnect" href="https://fonts.loli.net">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.loli.net/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Vibe overlay controls -->
+  <div class="vibe-overlay">
+    <div class="vibe-progress">
+      <div class="vibe-progress-bar" id="vibe-progress-bar"></div>
+    </div>
+    <div class="vibe-step" id="vibe-step">准备就绪</div>
+    <button class="vibe-replay" id="vibe-replay" title="重播">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+        <path d="M3 3v5h5"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Simulated cursor -->
+  <div class="vibe-cursor" id="vibe-cursor">
+    <div class="vibe-cursor-ring"></div>
+    <div class="vibe-cursor-dot"></div>
+  </div>
+
+  <!-- Mock website -->
+  <nav class="nav" id="nav">
+    <a href="#" class="nav-logo">辣不死的堡</a>
+    <ul class="nav-links">
+      <li><a href="#gallery" data-text="作品"><span>作品</span></a></li>
+      <li><a href="#about" data-text="关于"><span>关于</span></a></li>
+    </ul>
+    <div class="nav-right">
+      <ul class="lang-switcher">
+        <li><button class="active">中</button></li>
+        <li><button>EN</button></li>
+      </ul>
+      <button class="bgm-toggle" id="bgm-toggle" data-playing="true">
+        <svg class="bgm-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M9 18V5l12-2v13" class="bgm-note"/>
+          <circle cx="6" cy="18" r="3"/>
+          <circle cx="18" cy="16" r="3"/>
+          <line x1="6" y1="6" x2="22" y2="4" class="bgm-wave"/>
+          <line x1="8" y1="12" x2="20" y2="10" class="bgm-wave"/>
+        </svg>
+        <span class="bgm-label">BGM</span>
+      </button>
+      <button class="hamburger" aria-label="Menu"><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <section class="hero" id="hero">
+    <div class="hero-vignette"></div>
+    <div class="hero-content">
+      <p class="hero-name">辣不死的堡</p>
+      <h1 class="hero-title"><em>形式</em>追随光影</h1>
+    </div>
+    <div class="hero-scroll"><span>SCROLL</span><div class="hero-scroll-line"></div></div>
+  </section>
+
+  <section class="gallery-section" id="gallery">
+    <div class="gallery-header">
+      <h2>Selected Work</h2>
+      <p>Light and geometry</p>
+    </div>
+    <div class="gallery-wrap">
+      <div class="gallery-track" id="gallery-track">
+        <div class="gallery-slide view-trigger" data-index="01"><div class="gallery-slide-inner"><div class="img-placeholder" style="--accent:#3a3a3a">01</div><div class="gallery-caption">Silhouette / Geometry</div><div class="gallery-index">01</div></div></div>
+        <div class="gallery-slide view-trigger" data-index="02"><div class="gallery-slide-inner"><div class="img-placeholder" style="--accent:#4a4a4a">02</div><div class="gallery-caption">Solitary Bird / Landscape</div><div class="gallery-index">02</div></div></div>
+        <div class="gallery-slide view-trigger" data-index="03"><div class="gallery-slide-inner"><div class="img-placeholder" style="--accent:#2a2a2a">03</div><div class="gallery-caption">Arcade / Architecture</div><div class="gallery-index">03</div></div></div>
+        <div class="gallery-slide view-trigger" data-index="04"><div class="gallery-slide-inner"><div class="img-placeholder" style="--accent:#353535">04</div><div class="gallery-caption">Under the Dome</div><div class="gallery-index">04</div></div></div>
+        <div class="gallery-slide view-trigger" data-index="05"><div class="gallery-slide-inner"><div class="img-placeholder" style="--accent:#454545">05</div><div class="gallery-caption">Glacier / Birds</div><div class="gallery-index">05</div></div></div>
+        <div class="gallery-slide view-trigger" data-index="06"><div class="gallery-slide-inner"><div class="img-placeholder" style="--accent:#303030">06</div><div class="gallery-caption">Neon Rain / Night</div><div class="gallery-index">06</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="statement" id="statement">
+    <p>用镜头捕捉<em>几何</em>与<em>光影</em>的交汇。</p>
+  </section>
+
+  <section class="about-section" id="about">
+    <div class="about-inner">
+      <div class="about-left">
+        <p class="about-label">About</p>
+        <h2 class="about-name">辣不死的堡</h2>
+        <p class="about-bio">13岁，来自杭州。喜欢观察城市与自然的交汇，在几何线条与光影变化中寻找画面的秩序。</p>
+        <dl class="about-meta">
+          <dt>Focus</dt><dd>Street / Architecture / Light</dd>
+          <dt>Base</dt><dd>Hangzhou, China</dd>
+        </dl>
+      </div>
+      <div class="about-right">
+        <div class="about-portrait"><div class="img-placeholder" style="--accent:#1a1a1a">PORTRAIT</div></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p class="footer-copy">2026 辣不死的堡</p>
+    <div class="footer-socials">
+      <a href="#">Instagram</a>
+      <a href="#">Behance</a>
+      <a href="#">Email</a>
+    </div>
+  </footer>
+
+  <script src="https://cdn.bootcdn.net/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
