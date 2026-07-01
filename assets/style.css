@@ -200,14 +200,17 @@ a, button, [role="button"] { cursor:none }
 .mobile-menu.active a:nth-child(2) { transition-delay:0.08s }
 
 @media (max-width:900px) {
-  .nav { padding:20px; flex-wrap:nowrap }
-  .nav-logo { font-size:11px; letter-spacing:0.06em }
+  .nav { padding:18px 20px; flex-wrap:nowrap }
+  .nav-logo { font-size:11px; letter-spacing:0.06em; white-space:nowrap }
   .nav-links { display:none }
-  .hamburger { display:block; width:24px; height:18px }
-  .hamburger span:first-child { top:3px }
-  .hamburger span:last-child { bottom:3px }
-  .nav-right { gap:6px }
-  .lang-switcher button { padding:4px 5px; font-size:10px }
+  .hamburger { display:block; width:22px; height:16px }
+  .hamburger span:first-child { top:2px }
+  .hamburger span:last-child { bottom:2px }
+  .nav-right { gap:10px; flex-shrink:0 }
+  .lang-switcher { gap:2px }
+  .lang-switcher button { padding:3px 5px; font-size:10px }
+  .bgm-toggle { padding:5px 8px }
+  .bgm-toggle .bgm-label { display:none }
 }
 
 /* Hero */
@@ -528,10 +531,13 @@ a, button, [role="button"] { cursor:none }
 }
 
 @media (max-width:600px) {
-  .nav { padding:14px 16px }
-  .nav-logo { font-size:10px }
-  .nav-right { gap:4px }
-  .lang-switcher button { padding:3px 4px; font-size:9px }
+  .nav { padding:12px 14px }
+  .nav-logo { font-size:9px; letter-spacing:0.04em }
+  .nav-right { gap:6px }
+  .lang-switcher { gap:1px }
+  .lang-switcher button { padding:2px 3px; font-size:9px }
+  .bgm-toggle { padding:4px 6px }
+  .bgm-icon { width:13px; height:13px }
   .hero-content { padding:24px 16px; gap:16px }
   .hero-name { font-size:10px }
   .hero-title { padding:0 16px; font-size:clamp(34px, 11vw, 48px); line-height:1.1 }
