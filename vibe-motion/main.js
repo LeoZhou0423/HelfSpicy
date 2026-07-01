@@ -67,14 +67,16 @@
         return;
       }
 
-      if (doc.readyState === 'complete' &&
-          typeof win.gsap !== 'undefined' &&
-          doc.querySelector('.gallery-slide')) {
-        console.log('[Vibe Motion] iframe ready, starting flow');
+      const galleryReady = doc.querySelector('.gallery-slide');
+      const gsapReady = typeof win.gsap !== 'undefined';
+      const pinReady = typeof win.__galleryPinEnd === 'number' && win.__galleryPinEnd > 0;
+
+      if (doc.readyState === 'complete' && galleryReady && gsapReady && pinReady) {
+        console.log('[Vibe Motion] iframe ready, pin end:', win.__galleryPinEnd);
         setTimeout(callback, 800);
       } else {
-        if (attempts > 80) {
-          console.error('[Vibe Motion] timeout waiting for GSAP / gallery in iframe');
+        if (attempts > 120) {
+          console.error('[Vibe Motion] timeout waiting for iframe GSAP / gallery pin');
           return;
         }
         setTimeout(check, 200);
@@ -84,6 +86,16 @@
     check();
   }
 
+  function getGalleryPinEnd(doc, win, galleryTop) {
+    if (win.__galleryPinEnd) return win.__galleryPinEnd;
+    // fallback: rough estimate
+    const track = doc.getElementById('gallery-track');
+    if (track) {
+      return galleryTop + Math.max(0, track.scrollWidth - win.innerWidth) + win.innerHeight;
+    }
+    return galleryTop + 2500;
+  }
+
   function buildTimeline() {
     const win = getInnerWin();
     const doc = getInnerDoc();
@@ -91,7 +103,16 @@
 
     const ww = window.innerWidth;
     const wh = window.innerHeight;
-    const galleryTrack = doc.getElementById('gallery-track');
+
+    const gallerySection = doc.getElementById('gallery');
+    const galleryTop = gallerySection ? gallerySection.offsetTop : 0;
+    const galleryPinEnd = getGalleryPinEnd(doc, win, galleryTop);
+
+    const statement = doc.getElementById('statement-text') || doc.querySelector('.statement');
+    const statementTop = statement ? (statement.closest('section') || statement).offsetTop : (galleryPinEnd + 800);
+
+    const about = doc.getElementById('about');
+    const aboutTop = about ? about.offsetTop : (statementTop + 800);
 
     const tl = gsap.timeline({
       onComplete: function() {
@@ -119,54 +140,48 @@
       .add(function() { dispatch(galleryLink, 'mouseenter', linkCenter.x, linkCenter.y); }, 3.6)
       .add(function() { dispatch(galleryLink, 'mouseleave', linkCenter.x, linkCenter.y); }, 4.4);
 
-    // 4.8 - 7.0s: scroll to gallery
-    const gallerySection = doc.getElementById('gallery');
-    const galleryTop = gallerySection ? gallerySection.offsetTop : 0;
-    scrollTo(galleryTop, 1.6, 4.8, tl);
+    // 4.8 - 6.6s: scroll to gallery top
+    scrollTo(galleryTop, 1.8, 4.8, tl);
 
-    // 7.0 - 13.0s: browse gallery slides + horizontal scroll
+    // 6.6 - 12.6s: horizontal gallery scroll (must not overlap with other scroll tweens)
+    scrollTo(galleryPinEnd, 6.0, 6.6, tl);
+
+    // 12.6 - 14.6s: cursor browses slides while horizontal scroll happens
     const slides = doc.querySelectorAll('.gallery-slide');
-    const firstThree = Array.prototype.slice.call(slides, 0, 3);
-    firstThree.forEach(function(slide, i) {
-      const start = 7.0 + i * 1.4;
+    const browseSlides = Array.prototype.slice.call(slides, 0, 4);
+    browseSlides.forEach(function(slide, i) {
+      const start = 7.0 + i * 1.2;
       const center = getCenter(slide);
-      moveCursor(center.x, center.y, 0.6, start, tl)
-        .add(function() { dispatch(slide, 'mouseenter', center.x, center.y); }, start + 0.4)
+      moveCursor(center.x, center.y, 0.5, start, tl)
+        .add(function() { dispatch(slide, 'mouseenter', center.x, center.y); }, start + 0.3)
         .add(function() {
           const rect = slide.getBoundingClientRect();
-          dispatch(slide, 'mousemove', rect.left + rect.width * 0.65, rect.top + rect.height * 0.45);
-        }, start + 0.6)
-        .add(function() { dispatch(slide, 'mouseleave', center.x, center.y); }, start + 1.1);
+          dispatch(slide, 'mousemove', rect.left + rect.width * 0.6, rect.top + rect.height * 0.45);
+        }, start + 0.5)
+        .add(function() { dispatch(slide, 'mouseleave', center.x, center.y); }, start + 0.9);
     });
 
-    // Continue scrolling through gallery to trigger horizontal pin
-    scrollTo(galleryTop + 2000, 4.5, 9.0, tl);
+    // 14.6 - 16.8s: scroll to statement
+    scrollTo(statementTop, 2.2, 14.6, tl);
+    tl.to(cursor, { x: ww * 0.5, y: wh * 0.5, duration: 1.2, ease: 'power2.inOut' }, 14.8);
 
-    // 13.0 - 15.5s: scroll to statement
-    const statement = doc.getElementById('statement-text') || doc.querySelector('.statement');
-    const statementTop = statement ? (statement.closest('section') || statement).offsetTop : (galleryTop + 2500);
-    scrollTo(statementTop, 1.8, 13.0, tl);
-    moveCursor(ww * 0.5, wh * 0.5, 1.2, 13.2, tl);
+    // 16.8 - 19.0s: scroll to about
+    scrollTo(aboutTop, 2.2, 16.8, tl);
+    moveCursor(ww * 0.25, wh * 0.45, 1.2, 17.2, tl);
 
-    // 15.5 - 18.0s: scroll to about
-    const about = doc.getElementById('about');
-    const aboutTop = about ? about.offsetTop : (statementTop + 800);
-    scrollTo(aboutTop, 1.8, 15.5, tl);
-    moveCursor(ww * 0.25, wh * 0.45, 1.2, 15.8, tl);
-
-    // 18.0 - 20.0s: hover about portrait
+    // 19.0 - 21.0s: hover about portrait
     const portrait = doc.querySelector('.about-portrait');
     if (portrait) {
       const pc = getCenter(portrait);
-      moveCursor(pc.x, pc.y, 0.8, 18.0, tl)
-        .add(function() { dispatch(portrait, 'mouseenter', pc.x, pc.y); }, 18.5)
-        .add(function() { dispatch(portrait, 'mousemove', pc.x, pc.y); }, 18.6)
-        .add(function() { dispatch(portrait, 'mouseleave', pc.x, pc.y); }, 19.4);
+      moveCursor(pc.x, pc.y, 0.8, 19.0, tl)
+        .add(function() { dispatch(portrait, 'mouseenter', pc.x, pc.y); }, 19.5)
+        .add(function() { dispatch(portrait, 'mousemove', pc.x, pc.y); }, 19.6)
+        .add(function() { dispatch(portrait, 'mouseleave', pc.x, pc.y); }, 20.4);
     }
 
-    // 20.0 - 22.0s: back to top
-    scrollTo(0, 1.5, 20.0, tl);
-    moveCursor(ww * 0.5, wh * 0.5, 1.2, 20.0, tl);
+    // 21.0 - 23.0s: back to top
+    scrollTo(0, 2.0, 21.0, tl);
+    moveCursor(ww * 0.5, wh * 0.5, 1.2, 21.0, tl);
 
     return tl;
   }

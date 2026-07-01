@@ -599,6 +599,9 @@ function initHorizontalGallery() {
       requestAnimationFrame(updateSkew);
     }
     updateSkew();
+
+    // 暴露给 vibe-motion：横向滚动 pin 的结束滚动位置
+    window.__galleryPinEnd = wrap.offsetTop + totalScroll;
   }
 
   function onImgReady() {
