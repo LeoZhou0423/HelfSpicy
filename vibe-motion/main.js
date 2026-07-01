@@ -45,6 +45,11 @@
     }, position);
   }
 
+  // 平滑移动光标，确保落点准确以便触发对应元素的交互
+  function moveCursor(x, y, duration, position, tl) {
+    tl.to(cursor, { x: x, y: y, duration: duration, ease: 'power2.inOut' }, position);
+  }
+
   function waitForReady(callback) {
     const check = function() {
       const win = getInnerWin();
@@ -85,7 +90,7 @@
     // 1.2 - 3.0s: toggle BGM
     const bgmBtn = doc.getElementById('bgm-toggle');
     const bgmCenter = getCenter(bgmBtn);
-    tl.to(cursor, { x: bgmCenter.x, y: bgmCenter.y, duration: 0.8, ease: 'power2.inOut' }, 1.2)
+    moveCursor(bgmCenter.x, bgmCenter.y, 0.8, 1.2, tl)
       .add(function() { cursor.classList.add('click'); }, 2.0)
       .add(function() { dispatch(bgmBtn, 'click', bgmCenter.x, bgmCenter.y); }, 2.1)
       .add(function() { cursor.classList.remove('click'); }, 2.5);
