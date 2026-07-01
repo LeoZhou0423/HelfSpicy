@@ -436,12 +436,6 @@ function initHeroText() {
   if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
 
   updateHeroScroll();
-
-  gsap.to('.hero-fallback', {
-    scale: 1, yPercent: 15,
-    ease: 'none',
-    scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true }
-  });
 }
 
 /* ========== REVEALS ========== */

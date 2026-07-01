@@ -48,6 +48,7 @@
   // 平滑移动光标，确保落点准确以便触发对应元素的交互
   function moveCursor(x, y, duration, position, tl) {
     tl.to(cursor, { x: x, y: y, duration: duration, ease: 'power2.inOut' }, position);
+    return tl;
   }
 
   function waitForReady(callback) {
