@@ -898,6 +898,17 @@ function initPreloader() {
   var percent = document.getElementById('preloader-percent');
   if (!preloader) return;
 
+  // vibe-motion 模式下跳过预加载，直接展示完整页面供录制
+  if (location.search.indexOf('vibe-motion') !== -1) {
+    preloader.style.display = 'none';
+    document.body.style.overflow = '';
+    waitForGsapReady(function() {
+      if (typeof initCinematicEntrance === 'function') initCinematicEntrance();
+      if (typeof initHeroText === 'function') initHeroText();
+    }, 8000);
+    return;
+  }
+
   var done = false;
   // 页面上已有的 img（gallery、about 等）
   var images = [].filter.call(document.querySelectorAll('img'), function(el) { return el.getAttribute('src') && el.getAttribute('src') !== ''; });
