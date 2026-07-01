@@ -598,7 +598,7 @@ function initHorizontalGallery() {
         var tx = parseFloat(s.dataset.tiltX || 0);
         var ty = parseFloat(s.dataset.tiltY || 0);
         var br = parseFloat(s.dataset.tiltBright || 1);
-        s.style.transform = 'skewX(' + lastSkew + 'deg) scaleY(' + lastScaleY + ') perspective(1000px) rotateX(' + tx + 'deg) rotateY(' + ty + 'deg)';
+        s.style.transform = 'skewX(' + lastSkew + 'deg) scaleY(' + lastScaleY + ') perspective(1000px) rotateX(' + tx + 'deg) rotateY(' + ty + 'deg) scale(0.95)';
         s.style.filter = 'brightness(' + br + ')';
       });
       galleryVelocity *= 0.94;
@@ -753,8 +753,8 @@ function init3DTilt() {
       const rect = slide.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width;
       const y = (e.clientY - rect.top) / rect.height;
-      inner.dataset.tiltX = ((y - 0.5) * -18).toFixed(1);
-      inner.dataset.tiltY = ((x - 0.5) * 18).toFixed(1);
+      inner.dataset.tiltX = ((y - 0.5) * -10).toFixed(1);
+      inner.dataset.tiltY = ((x - 0.5) * 10).toFixed(1);
       /* 同时增加一点亮度 → 凸起感 */
       inner.dataset.tiltBright = (1 + (1 - Math.abs(x - 0.5) * 2 - Math.abs(y - 0.5) * 2) * 0.08).toFixed(2);
     });
