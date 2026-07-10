@@ -873,6 +873,78 @@ function initNavScroll() {
   }, { passive: true });
 }
 
+/* ========== MOBILE GYRO - 轻量陀螺仪效果 ========== */
+function initMobileGyro() {
+  // 只在移动端启用陀螺仪
+  if (window.innerWidth > 900) return;
+
+  // 检测设备是否支持陀螺仪
+  if (!window.DeviceOrientationEvent) {
+    console.log('DeviceOrientation not supported');
+    return;
+  }
+
+  var lastTiltX = 0, lastTiltY = 0;
+  var smoothingFactor = 0.15; // 平滑系数，避免抖动
+
+  // iOS 13+ 需要用户授权才能访问陀螺仪
+  if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+    // 点击画廊区域触发授权
+    var galleryWrap = document.getElementById('gallery-wrap');
+    if (!galleryWrap) return;
+
+    var requestGyroPermission = function() {
+      DeviceOrientationEvent.requestPermission()
+        .then(function(permissionState) {
+          if (permissionState === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation, true);
+            galleryWrap.removeEventListener('touchstart', requestGyroPermission);
+          }
+        })
+        .catch(console.error);
+    };
+
+    galleryWrap.addEventListener('touchstart', requestGyroPermission, { once: true });
+
+    // 提示用户点击授权
+    var hint = document.createElement('div');
+    hint.className = 'gyro-hint';
+    hint.textContent = 'Tap to enable motion effects';
+    hint.style.cssText = 'position:fixed;bottom:120px;left:50%;transform:translateX(-50%);font-size:12px;color:rgba(255,255,255,0.5);pointer-events:none;z-index:100;';
+    document.body.appendChild(hint);
+
+    setTimeout(function() { if (hint.parentNode) hint.remove(); }, 3000);
+  } else {
+    // 非 iOS 设备直接启用
+    window.addEventListener('deviceorientation', handleOrientation, true);
+  }
+
+  function handleOrientation(event) {
+    // beta: 前后倾斜（-180 到 180）
+    // gamma: 左右倾斜（-90 到 90）
+    var tiltX = event.gamma || 0; // 左右倾斜
+    var tiltY = event.beta || 0;  // 前后倾斜
+
+    // 限制倾斜范围，避免过度倾斜
+    tiltX = Math.max(-15, Math.min(15, tiltX));
+    tiltY = Math.max(-15, Math.min(15, tiltY));
+
+    // 平滑处理，避免抖动
+    lastTiltX += (tiltX - lastTiltX) * smoothingFactor;
+    lastTiltY += (tiltY - lastTiltY) * smoothingFactor;
+
+    // 只对当前 active 的 slide 应用陀螺仪效果
+    var activeSlide = document.querySelector('.gallery-slide.mobile-active');
+    if (activeSlide) {
+      var inner = activeSlide.querySelector('.gallery-slide-inner');
+      if (inner) {
+        // 轻量效果：只做微小的 3D 倾斜，不会太重
+        inner.style.transform = 'perspective(1000px) rotateY(' + (lastTiltX * 0.5) + 'deg) rotateX(' + (-lastTiltY * 0.3) + 'deg)';
+      }
+    }
+  }
+}
+
 /* ========== SMOOTH ANCHOR SCROLL ========== */
 function initAnchors() {
   document.querySelectorAll('a[href^="#"]').forEach(a => {
@@ -1130,6 +1202,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initAnchors();
   initNavScroll();
   init3DTilt();
+  initMobileGyro(); // 轻量陀螺仪效果
 
   // 汉堡菜单
   var hamburger = document.getElementById('hamburger');

@@ -293,8 +293,26 @@ a, button, [role="button"] { cursor:none }
     overflow-x:auto; scroll-snap-type:x mandatory;
     -webkit-overflow-scrolling:touch;
     overscroll-behavior-x:contain;
+    /* 触控优化 */
+    touch-action:pan-x;
+    scroll-behavior:smooth;
   }
   .gallery-wrap::-webkit-scrollbar { display:none }
+
+  /* 移动端Hero优化 */
+  .hero {
+    min-height:100vh; height:100svh;
+    padding:0 24px;
+  }
+  .hero-title {
+    font-size:clamp(32px, 12vw, 80px);
+    line-height:1.1;
+  }
+
+  /* 移动端字体缩放 */
+  .nav { padding:16px }
+  .nav-links { display:none }
+  .nav-lang { font-size:9px }
 }
 
 .gallery-track {
@@ -303,19 +321,53 @@ a, button, [role="button"] { cursor:none }
 }
 @media (max-width:900px) {
   .gallery-track {
-    display:flex; flex-direction:row; gap:24px; padding:0 24px; height:auto;
+    display:flex; flex-direction:row; gap:20px; padding:0 20px; height:auto;
     flex-wrap:nowrap;
   }
   .gallery-track { will-change:auto }
-  .gallery-slide { flex-shrink:0; width:85vw; height:auto; aspect-ratio:auto; scroll-snap-align:start; scroll-snap-stop:always; transition:opacity 0.5s ease, transform 0.5s ease }
-  .gallery-slide-inner { height:auto; transition:transform 0.5s ease }
-  .gallery-slide img { width:100%; height:auto; display:block }
-  .gallery-caption, .gallery-index { opacity:1 !important; transform:none !important }
+  /* 移动端画廊卡片：更宽更流畅 */
+  .gallery-slide {
+    flex-shrink:0; width:88vw; height:auto; aspect-ratio:3/2;
+    scroll-snap-align:center; scroll-snap-stop:always;
+    transition:opacity 0.3s ease, transform 0.3s ease;
+    /* 触控反馈 */
+    touch-action:manipulation;
+  }
+  .gallery-slide-inner {
+    height:auto; transition:transform 0.3s ease;
+    /* 陀螺仪微动效果 */
+    will-change:transform;
+  }
+  .gallery-slide img {
+    width:100%; height:auto; display:block;
+    /* 防止触控时图片闪烁 */
+    -webkit-touch-callout:none;
+    user-select:none;
+  }
+  .gallery-caption, .gallery-index {
+    opacity:1 !important; transform:none !important;
+    font-size:clamp(10px, 2.5vw, 12px);
+  }
 
   /* 手机端聚焦效果：当前 slide 全亮，两侧暗化缩小 */
-  .gallery-slide.mobile-inactive { opacity:0.55; transform:scale(0.94) }
-  .gallery-slide.mobile-active { opacity:1; transform:scale(1) }
+  .gallery-slide.mobile-inactive {
+    opacity:0.5; transform:scale(0.92);
+    filter:grayscale(20%);
+  }
+  .gallery-slide.mobile-active {
+    opacity:1; transform:scale(1);
+    filter:grayscale(0%);
+  }
 
+  /* 移动端About优化 */
+  .about-section { padding:8vh 20px }
+  .about-content { gap:24px }
+  .about-avatar {
+    width:140px; height:140px;
+    border-radius:50%;
+  }
+  .about-name { font-size:clamp(24px, 6vw, 32px) }
+  .about-field { font-size:11px }
 }
 
 .gallery-slide {
