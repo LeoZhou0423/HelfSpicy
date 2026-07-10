@@ -873,7 +873,7 @@ function initNavScroll() {
   }, { passive: true });
 }
 
-/* ========== MOBILE GYRO - 轻量陀螺仪效果 ========== */
+/* ========== MOBILE GYRO - 增强陀螺仪效果 ========== */
 function initMobileGyro() {
   // 只在移动端启用陀螺仪
   if (window.innerWidth > 900) return;
@@ -885,7 +885,7 @@ function initMobileGyro() {
   }
 
   var lastTiltX = 0, lastTiltY = 0;
-  var smoothingFactor = 0.15; // 平滑系数，避免抖动
+  var smoothingFactor = 0.35; // 增强响应速度
 
   // iOS 13+ 需要用户授权才能访问陀螺仪
   if (typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -925,22 +925,35 @@ function initMobileGyro() {
     var tiltX = event.gamma || 0; // 左右倾斜
     var tiltY = event.beta || 0;  // 前后倾斜
 
-    // 限制倾斜范围，避免过度倾斜
-    tiltX = Math.max(-15, Math.min(15, tiltX));
-    tiltY = Math.max(-15, Math.min(15, tiltY));
+    // 增大倾斜范围，让效果更明显
+    tiltX = Math.max(-30, Math.min(30, tiltX));
+    tiltY = Math.max(-30, Math.min(30, tiltY));
 
-    // 平滑处理，避免抖动
+    // 平滑处理
     lastTiltX += (tiltX - lastTiltX) * smoothingFactor;
     lastTiltY += (tiltY - lastTiltY) * smoothingFactor;
 
-    // 只对当前 active 的 slide 应用陀螺仪效果
+    // 对当前 active 的 slide 应用陀螺仪效果（增强版）
     var activeSlide = document.querySelector('.gallery-slide.mobile-active');
     if (activeSlide) {
       var inner = activeSlide.querySelector('.gallery-slide-inner');
       if (inner) {
-        // 轻量效果：只做微小的 3D 倾斜，不会太重
-        inner.style.transform = 'perspective(1000px) rotateY(' + (lastTiltX * 0.5) + 'deg) rotateX(' + (-lastTiltY * 0.3) + 'deg)';
+        // 增强效果：更大的倾斜角度 + 光影变化
+        inner.style.transform = 'perspective(1000px) rotateY(' + (lastTiltX * 1.2) + 'deg) rotateX(' + (-lastTiltY * 0.6) + 'deg) scale(1.02)';
+        // 根据倾斜角度调整亮度，模拟光影移动
+        var brightnessChange = Math.abs(lastTiltX) * 0.015;
+        inner.style.filter = 'brightness(' + (1 + brightnessChange) + ')';
       }
+    }
+
+    // 对 Hero 区域也应用陀螺仪效果（微弱版）
+    var hero = document.querySelector('.hero');
+    if (hero && hero.getBoundingClientRect().top < window.innerHeight * 0.5) {
+      var heroLayers = hero.querySelectorAll('.hero-parallax-layer');
+      heroLayers.forEach(function(layer, idx) {
+        var depthFactor = (idx + 1) * 0.08; // 不同层级不同响应强度
+        layer.style.transform = 'translateX(' + (lastTiltX * depthFactor * 3) + 'px) translateY(' + (lastTiltY * depthFactor * 1.5) + 'px)';
+      });
     }
   }
 }
